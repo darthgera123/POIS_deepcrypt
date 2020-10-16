@@ -18,3 +18,4 @@
 ## Knows Issues
 - Convert the adhoc style to client-server
 - Final step of `comparison/dgk_comp.py`
+- Equality case in comparison.
