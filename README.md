@@ -15,3 +15,6 @@
 -   Homomorphic operations - Use normal operations in the encrypted domain as well, it internally takes care of it.
 -   Doc - https://pypi.org/project/paillierlib/
 
+## Knows Issues
+- Convert the adhoc style to client-server
+- Final step of `comparison/dgk_comp.py`

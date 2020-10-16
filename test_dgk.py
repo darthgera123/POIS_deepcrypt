@@ -13,7 +13,7 @@ priv = np.load("dgk/priv.npy", allow_pickle=True).item()
 
 #100 iszero tests
 for i in range(100):
-	m = np.random.randint(0, 1)
+	m = np.random.randint(0, 2)
 	c = dgk.encrypt(m, pub)
 	m_iszero = dgk.decrypt_iszero(c, priv)
 
