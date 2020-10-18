@@ -1,6 +1,6 @@
 import dgk
 import numpy as np
-
+import random
 # change this if want to generate keys
 generate_keys = False
 
@@ -22,3 +22,12 @@ for i in range(100):
 		quit()
 
 print("Success!!!!")
+
+
+# Checking dot product
+a = random.sample(range(1,100),5)
+b = random.sample(range(1,100),5)
+
+print(np.dot(a,b))
+x = dgk.dot(a,b)
+print(x)
