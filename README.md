@@ -18,4 +18,5 @@
 ## Knows Issues
 - Convert the adhoc style to client-server
 - Final step of `comparison/dgk_comp.py`
+- DGK decryption the power according to the original algo should be vp*vq, but we have used just vp.
 - Equality case in comparison.
