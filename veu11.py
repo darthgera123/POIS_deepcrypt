@@ -2,6 +2,7 @@ import random
 import dgk_compare
 import goldwasser_micali as gm 
 from paillierlib import paillier
+from gmpy2 import mpz
 
 def MSB(x, l):
 	return bin(x)[2:].zfill(l+1)[0]
@@ -10,11 +11,11 @@ def compare(encrypted_a, encrypted_b, l, pk, privk):
 	# -------------------A-----------------------------
 	x = encrypted_b + paillier.encrypt(pow(2, l), pk) - encrypted_a
 	r = random.randint(0, 1e18)
-	z = x + paillier.encrypt(r, pk)
+	z = x + paillier.encrypt(mpz(r), pk)
 	c = r % pow(2, l)
 
 	#---------------------B----------------------------
-	z_dec = paillier.decrypt(z, privk)
+	z_dec = paillier.decrypt(mpz(z), privk)
 	d = z_dec % pow(2, l)
 
 	#-----------------A and B compute encrypted t -----
@@ -44,7 +45,7 @@ def compare(encrypted_a, encrypted_b, l, pk, privk):
 	return t
 
 key_pair = paillier.keygen()
-encrypted_a = paillier.encrypt(15, key_pair.public_key)
-encrypted_b = paillier.encrypt(14, key_pair.public_key)
+encrypted_a = paillier.encrypt(mpz(15), key_pair.public_key)
+encrypted_b = paillier.encrypt(mpz(14), key_pair.public_key)
 
 print(compare(encrypted_a, encrypted_b, 4, key_pair.public_key, key_pair.private_key))
