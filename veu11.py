@@ -15,7 +15,7 @@ def compare(encrypted_a, encrypted_b, l, pk, privk):
 	c = r % pow(2, l)
 
 	#---------------------B----------------------------
-	z_dec = paillier.decrypt(mpz(z), privk)
+	z_dec = paillier.decrypt(z, privk)
 	d = z_dec % pow(2, l)
 
 	#-----------------A and B compute encrypted t -----
