@@ -26,7 +26,7 @@ priv_key = "./dgk/priv.npy"
 pub = np.load(pub_key, allow_pickle=True).item()
 priv = np.load(priv_key, allow_pickle=True).item()
 
-def compare(x, y, l, pk, priv_k):
+def compare(x, y, l, pk):
 	# get bits
 	y_b = get_bits(y, l)
 	# get encrypted bits
@@ -109,8 +109,8 @@ def compare(x, y, l, pk, priv_k):
 	c2_bit = list(c2)[0]
 	one_bit = list(one)[0]
 
-	print("x:", x)
-	print("y:", y)
-	print("IS x > y ? ", bool(gm.decrypt([(((c1_bit%N * c2_bit%N)%N) * one_bit%N)%N], priv_k)))
+	# print("x:", x)
+	# print("y:", y)
+	# print("IS x > y ? ", bool(gm.decrypt([(((c1_bit%N * c2_bit%N)%N) * one_bit%N)%N], priv_k)))
 
 	return (((c1_bit%N * c2_bit%N)%N) * one_bit%N)%N
