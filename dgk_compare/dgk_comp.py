@@ -21,8 +21,8 @@ if(generate_keys):
 	#keygen without dlut and with save in file (default)
 	dgk.keygen(2048, 160, 18)
 
-pub_key = "./dgk/pub.npy"
-priv_key = "./dgk/priv.npy"
+pub_key = "../dgk/pub.npy"
+priv_key = "../dgk/priv.npy"
 pub = np.load(pub_key, allow_pickle=True).item()
 priv = np.load(priv_key, allow_pickle=True).item()
 

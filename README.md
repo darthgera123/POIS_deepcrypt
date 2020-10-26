@@ -22,3 +22,10 @@
 - Equality case in comparison.
 - Currently the code for veu11 is not client-server based so when comparing 2 unencrypted numbers using dgk_compare, key for goldwasser micali is generated in veu11.py and the public key is passed as an argument to dgk compare function. Need to fix this when moving to client - server based code.
 - For testing purpose of veu11, currently the code returns the decrypted output. It should return only the encrypted bit. Fix this after testing
+
+## IMPORTING FILES
+- write these 2 lines in a script setup.py and save it in parent directory of 	POIS_deepcrypt
+	from setuptools import setup, find_packages
+	setup(name='myproject', version='1.0', packages=find_packages())
+- run 'pip3 install -e .' in parent directory of POIS_deepcrypt	
+- Use ' from POIS_deepcrypt.dir1.dir2 import file ' to import a file anywhere , then use file.function()  

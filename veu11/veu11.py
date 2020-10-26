@@ -1,7 +1,8 @@
 import random
 from tqdm import tqdm
-import dgk_compare
-import goldwasser_micali as gm 
+from POIS_deepcrypt.dgk_compare import *
+from POIS_deepcrypt.dgk import *
+from POIS_deepcrypt.goldwasser_micali import goldwasser_micali as gm 
 from paillierlib import paillier
 from gmpy2 import mpz
 
@@ -16,6 +17,7 @@ def compare(encrypted_a, encrypted_b, l, pk, privk):
 	c = r % pow(2, l)
 
 	#---------------------B----------------------------
+	# print(x)
 	z_dec = paillier.decrypt(z, privk)
 	d = z_dec % pow(2, l)
 
@@ -23,7 +25,7 @@ def compare(encrypted_a, encrypted_b, l, pk, privk):
 	kp = gm.generate_key(1024)
 	qr_pk = kp["pub"]
 	qr_privk = kp["priv"]
-	t = dgk_compare.compare(c, d, l, qr_pk)
+	t = dgk_comp.compare(c, d, l, qr_pk)
 
 	# -------------------A-----------------------------
 	if MSB(r, l):
