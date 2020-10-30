@@ -8,13 +8,13 @@ from tqdm import tqdm
 from POIS_deepcrypt.veu11 import veu11_argmax as CMP
 from POIS_deepcrypt.goldwasser_micali import goldwasser_micali as gm 
 
-key = paillier.keygen()
-
-privk = key.private_key
-pubk = key.public_key
 
 
 def getRandomInp():
+	key = paillier.keygen()
+
+	privk = key.private_key
+	pubk = key.public_key
 	a=[]
 	for i in range(5):
 		x = random.randint(1,31)
@@ -27,17 +27,17 @@ def getRandomInp():
 		inp.append(paillier.encrypt(mpz(num),pubk))
 	inp=np.array(inp)
 
-	return inp
+	return inp,pubk,privk
 
 private_b_var = 0
 
-def refresh_b( num ):
-	global pubk , privk
+def refresh_b( num , pubk , privk):
+	# global pubk , privk
 	plainval = paillier.decrypt( num , privk )
 	re_enc = paillier.encrypt( plainval , pubk )
 	return re_enc
 
-def b_handler( mx_rand , ai_rand , l , enc_bit , idx , pubk):
+def b_handler( mx_rand , ai_rand , l , enc_bit , idx , pubk , privk):
 	
 	qr_privk = CMP.get_GM_privk_B()
 
@@ -46,10 +46,10 @@ def b_handler( mx_rand , ai_rand , l , enc_bit , idx , pubk):
 	if isless:
 		global private_b_var
 		private_b_var = idx
-		vi = refresh_b( ai_rand )
+		vi = refresh_b( ai_rand , pubk , privk )
 		bit_paillier = paillier.encrypt(1,pubk)
 	else:	
-		vi = refresh_b( mx_rand )
+		vi = refresh_b( mx_rand , pubk , privk )
 		bit_paillier = paillier.encrypt(0,pubk)
 
 	return bit_paillier , vi	
@@ -58,7 +58,6 @@ def askB_for_index():
 	global private_b_var
 	return private_b_var
 
-# party A function
 def handler_A(inp,l,pubk,privk):
 	
 	perm=np.arange(0,len(inp))
@@ -66,11 +65,6 @@ def handler_A(inp,l,pubk,privk):
 	shuf_inp = inp[ perm ]
 	mxval = shuf_inp[ 0 ]
 
-	# for i in shuf_inp:
-	# 	print(paillier.decrypt(i,privk),end=' ')
-	# print()	
-
-	# for i in tqdm(range(len(shuf_inp))):
 	for i in range(len(shuf_inp)):
 		
 		ai = shuf_inp[ i ]	
@@ -86,7 +80,7 @@ def handler_A(inp,l,pubk,privk):
 		mx_rand = mxval + enc_r
 		ai_rand = ai + enc_s
 
-		bi , vi = b_handler( mx_rand , ai_rand , l , enc_bit , i , pubk)
+		bi , vi = b_handler( mx_rand , ai_rand , l , enc_bit , i , pubk , privk)
 
 		one_enc = paillier.encrypt(mpz(1),pubk)
 
@@ -98,12 +92,11 @@ def handler_A(inp,l,pubk,privk):
 
 		mxval = vi
 
-		# print( paillier.decrypt( mxval , privk ) , "###############################################" )
 
 	shuf_idx = askB_for_index()
 
 	return perm[ shuf_idx ]
 
-inp = getRandomInp()
+inp,pubk,privk = getRandomInp()
 print( handler_A( inp , 6 , pubk , privk ) )
 

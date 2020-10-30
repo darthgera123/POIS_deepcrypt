@@ -229,6 +229,8 @@ def Bayes():
 
 	print((class_posterior_list_unenc),"ON UNENCRYPTED DATA BEST CLASS IS:" , np.argmax(class_posterior_list)+1)
 
+	global key_pair
+	argmax_module.handler_A(inp,75,key_pair.private_key,key_pair.public_key)
 	#encrypted best class found by argmax protocol
 
 Bayes()
