@@ -24,8 +24,8 @@
 - For testing purpose of veu11, currently the code returns the decrypted output. It should return only the encrypted bit. Fix this after testing
 
 ## IMPORTING FILES
-- write these 2 lines in a script setup.py and save it in parent directory of 	POIS_deepcrypt
-	from setuptools import setup, find_packages
-	setup(name='myproject', version='1.0', packages=find_packages())
+- write these 2 lines in a script setup.py and save it in parent directory of POIS_deepcrypt
+- line 1: from setuptools import setup, find_packages
+- line 2: setup(name='myproject', version='1.0', packages=find_packages())
 - run 'pip3 install -e .' in parent directory of POIS_deepcrypt	
 - Use ' from POIS_deepcrypt.dir1.dir2 import file ' to import a file anywhere , then use file.function()  
