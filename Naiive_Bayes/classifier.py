@@ -6,6 +6,7 @@ from gmpy2 import mpfr
 import random
 import copy
 from tqdm import tqdm
+
 #################################################################################################################
 #server side functions , all inputs are np arrays
 
