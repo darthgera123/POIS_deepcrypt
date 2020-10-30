@@ -15,3 +15,8 @@ def add():
     if request.method == 'POST' and form.validate():
         print(request.form)
     return redirect(url_for('hello'))
+
+if __name__=='__main__':
+	# port 5000 for this and 8000 for server B
+    app.run(debug=True,port=8000)
+    
