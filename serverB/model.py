@@ -14,12 +14,17 @@ def api_addition():
 	if request.method == 'GET':
 		return jsonify(encrypt_key)
 	if request.method == 'POST':
-		number = request.args.get('number', ' ')
-		print(number)
+		number = request.json['number']
 		new_number = int(number) + encrypt_key
 		return jsonify(new_number)
 
-
+@app.route('/api/model/subtraction',methods = ["POST"])
+def api_subtraction():
+	encrypt_key = random.randint(0,1e5)
+	if request.method == 'POST':
+		number = request.json['number']
+		new_number = int(number) - encrypt_key
+		return jsonify(new_number)
 
 if __name__ == '__main__':
 	# port 5000
