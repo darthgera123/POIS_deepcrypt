@@ -6,7 +6,7 @@ import math
 import gensafeprime
 import numpy as np
 
-def keygen(k, t, l, save_in_file=True, gen_dlut=False):
+def keygen(k, t, l, save_dir, save_in_file=True, gen_dlut=False):
 
 	# generate distinct primes vp and vq
 	vp = gensafeprime.generate(t)
@@ -119,8 +119,8 @@ def keygen(k, t, l, save_in_file=True, gen_dlut=False):
 		priv['dlut'] = np.array(priv['dlut'])
 
 	if(save_in_file):
-		np.save("priv.npy", priv)
-		np.save("pub.npy", pub)
+		np.save(os.path.join(save_dir, "priv.npy"), priv)
+		np.save(os.path.join(save_dir, "pub.npy"), pub)
 
 	return priv, pub
 
