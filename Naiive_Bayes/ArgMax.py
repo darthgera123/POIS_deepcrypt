@@ -16,8 +16,8 @@ def getRandomInp():
 	privk = key.private_key
 	pubk = key.public_key
 	a=[]
-	for i in range(5):
-		x = random.randint(1,31)
+	for i in range(15):
+		x = random.randint(-31,-1)
 		a.append(x)
 	a = np.array(a)
 
@@ -61,7 +61,7 @@ def askB_for_index():
 def handler_A(inp,l,pubk,privk):
 	
 	perm=np.arange(0,len(inp))
-	random.shuffle(perm)
+	# random.shuffle(perm)
 	shuf_inp = inp[ perm ]
 	mxval = shuf_inp[ 0 ]
 
@@ -92,11 +92,13 @@ def handler_A(inp,l,pubk,privk):
 
 		mxval = vi
 
+		# print(paillier.decrypt(mxval,privk))
+
 
 	shuf_idx = askB_for_index()
 
 	return perm[ shuf_idx ]
 
-inp,pubk,privk = getRandomInp()
-print( handler_A( inp , 6 , pubk , privk ) )
+# inp,pubk,privk = getRandomInp()
+# print( handler_A( inp , 10 , pubk , privk ) )
 
