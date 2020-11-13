@@ -4,11 +4,11 @@ from decrypt import  *
 import numpy as np
 
 # change this if want to generate keys
-generate_keys = False
+generate_keys = True
 
 if(generate_keys):
 	#keygen without dlut and with save in file (default)
-	keygen(2048, 160, 18)
+	keygen(2048, 160, 18, None)
 
 pub = np.load("pub.npy", allow_pickle=True).item()
 priv = np.load("priv.npy", allow_pickle=True).item()

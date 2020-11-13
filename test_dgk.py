@@ -1,13 +1,16 @@
 import dgk
 import numpy as np
 import random
+import time
 # change this if want to generate keys
-generate_keys = False
-
+generate_keys = True
+start = time.time()
 if(generate_keys):
 	#keygen without dlut and with save in file (default)
-	dgk.keygen(2048, 160, 18)
+	dgk.keygen(2048, 160, 18, ".")
+end = time.time()
 
+print(end - start)
 pub = np.load("dgk/pub.npy", allow_pickle=True).item()
 priv = np.load("dgk/priv.npy", allow_pickle=True).item()
 
