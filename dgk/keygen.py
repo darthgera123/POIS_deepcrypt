@@ -8,9 +8,21 @@ import numpy as np
 import threading
 import concurrent.futures
 import os
+import ray
+import time
+
+ray.init()
+
+@ray.remote
+def gen_p(u, v, k, i):
+	temp1 = 2 * u * v
+	sz = k//2 - temp1.bit_length()
+	prand = gensafeprime.generate(sz)
+	p = temp1*prand + 1
+	if isprime(p):
+		return p, prand
 
 def gen_p_q(u, v, k):
-	print(u, v, k)
 	while(1):
 		temp1 = 2 * u * v
 		sz = k//2 - temp1.bit_length()
@@ -20,7 +32,6 @@ def gen_p_q(u, v, k):
 			return p, prand
 
 def rand_calc(p, partials_p):
-	print(p, partials_p)
 	while(1):
 		hrandp = random.randint(0, p-1)
 		if(hrandp == 1 or math.gcd(hrandp, p) != 1):
@@ -50,14 +61,42 @@ def keygen(k, t, l, save_dir, save_in_file=True, gen_dlut=False):
 	# generate prime p s.t. vp | p-1 and u | p-1
 	print("Generating p....")
 
-	print("Generating q....")
 	vals = [[u, vp, k], [u, vq, k]]
+	start = time.time()
+	f = [gen_p.remote(u, vp, k, i) for i in range(1000)]
+	values = None
+	while True:
+		ready, not_ready = ray.wait(f, num_returns=1)
+		vals = ray.get(ready)
+		for i in ready:
+			f.remove(i)
+		if vals.count(None) == len(vals):
+			continue
+		else:
+			for id in not_ready:
+				ray.cancel(id)
+			values = vals
+			break
+	p, prand = values[0]
+	end = time.time()
+	print(end - start)
+	print("Generating q....")
 
-	with concurrent.futures.ThreadPoolExecutor() as executor:
-		futures = [executor.submit(gen_p_q, *param) for param in vals]
-	p, q = [f.result() for f in futures]
-	p, prand = p
-	q, qrand = q
+	f = [gen_p.remote(u, vq, k, i) for i in range(1000)]
+	values = None
+	while True:
+		ready, not_ready = ray.wait(f, num_returns=1)
+		vals = ray.get(ready)
+		for i in ready:
+			f.remove(i)
+		if vals.count(None) == len(vals):
+			continue
+		else:
+			for id in not_ready:
+				ray.cancel(id)
+			values = vals
+			break
+	q, qrand = values[0]
 	print("p, q Generated")
 
 	# calc n
