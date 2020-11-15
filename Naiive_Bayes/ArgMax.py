@@ -76,9 +76,6 @@ def handler_A(inp,l,pubk,privk):
 		
 		enc_bit = CMP.compare_A(mxval , ai , l , pubk , privk )
 		
-		jj = CMP.get_GM_privk_B()
-		# print(jj)
-		
 		r = random.getrandbits( l + 1 )
 		s = random.getrandbits( l + 1 )
 		
@@ -107,15 +104,3 @@ def handler_A(inp,l,pubk,privk):
 	shuf_idx = askB_for_index()
 	return perm[ shuf_idx ]
 
-# for i in range(100):
-# 	inp,pubk,privk,ans,ac = getRandomInp()
-# 	print("#############################################")
-# 	x = handler_A( inp , 40 , pubk , privk ) 
-# 	if x!=ans:
-# 		print(ac,x,ans)
-# 		break
-# 	print("#############################################")
-
-# inp,pubk,privk,ans,ac = getRandomInp()
-# x = handler_A( inp , 20 , pubk , privk ) 
-# print(x)
