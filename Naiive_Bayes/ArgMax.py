@@ -10,26 +10,28 @@ from POIS_deepcrypt.goldwasser_micali import goldwasser_micali as gm
 
 
 
+private_b_var = 0
 def getRandomInp():
 	key = paillier.keygen()
 
 	privk = key.private_key
 	pubk = key.public_key
-	a=[]
-	for i in range(15):
-		x = random.randint(-31,-1)
-		a.append(x)
-	a = np.array(a)
+	a=[random.randint(-20000,20000),random.randint(-200000,20000),random.randint(-20000,20000)]
+	# a = [1915,1383]
+	# for i in range(15):
+	# 	x = random.randint(-31,-1)
+	# 	a.append(x)
+	# a = np.array(a)
 
-	print(a)
+	ans = np.argmax(np.array(a))
+	# print(a)
 	inp=[]
 	for num in a:
 		inp.append(paillier.encrypt(mpz(num),pubk))
 	inp=np.array(inp)
 
-	return inp,pubk,privk
+	return inp,pubk,privk,ans,a
 
-private_b_var = 0
 
 def refresh_b( num , pubk , privk):
 	# global pubk , privk
@@ -46,6 +48,7 @@ def b_handler( mx_rand , ai_rand , l , enc_bit , idx , pubk , privk):
 	if isless:
 		global private_b_var
 		private_b_var = idx
+		# print("wegweg",idx,private_b_var)
 		vi = refresh_b( ai_rand , pubk , privk )
 		bit_paillier = paillier.encrypt(1,pubk)
 	else:	
@@ -61,18 +64,23 @@ def askB_for_index():
 def handler_A(inp,l,pubk,privk):
 	
 	perm=np.arange(0,len(inp))
-	# random.shuffle(perm)
+	random.shuffle(perm)
 	shuf_inp = inp[ perm ]
 	mxval = shuf_inp[ 0 ]
+	global private_b_var
+	private_b_var = 0
 
-	for i in range(len(shuf_inp)):
+	for i in range(1,len(shuf_inp)):
 		
 		ai = shuf_inp[ i ]	
 		
 		enc_bit = CMP.compare_A(mxval , ai , l , pubk , privk )
 		
-		r = random.getrandbits( 2 * l + 1 )
-		s = random.getrandbits( 2 * l + 1 )
+		jj = CMP.get_GM_privk_B()
+		# print(jj)
+		
+		r = random.getrandbits( l + 1 )
+		s = random.getrandbits( l + 1 )
 		
 		enc_r = paillier.encrypt( r , pubk )
 		enc_s = paillier.encrypt( s , pubk )
@@ -90,15 +98,24 @@ def handler_A(inp,l,pubk,privk):
 		vi = vi + remove_r
 		vi = vi - remove_s
 
+		# print(paillier.decrypt(mxval,privk),paillier.decrypt(ai,privk),gm.decrypt([enc_bit],jj),private_b_var,end=' ')
 		mxval = vi
 
 		# print(paillier.decrypt(mxval,privk))
 
 
 	shuf_idx = askB_for_index()
-
 	return perm[ shuf_idx ]
 
-# inp,pubk,privk = getRandomInp()
-# print( handler_A( inp , 10 , pubk , privk ) )
+# for i in range(100):
+# 	inp,pubk,privk,ans,ac = getRandomInp()
+# 	print("#############################################")
+# 	x = handler_A( inp , 40 , pubk , privk ) 
+# 	if x!=ans:
+# 		print(ac,x,ans)
+# 		break
+# 	print("#############################################")
 
+# inp,pubk,privk,ans,ac = getRandomInp()
+# x = handler_A( inp , 20 , pubk , privk ) 
+# print(x)
