@@ -1,0 +1,54 @@
+name: deepcrypt
+channels:
+  - conda-forge
+  - anaconda
+  - defaults
+dependencies:
+  - _libgcc_mutex=0.1=main
+  - blas=1.0=mkl
+  - ca-certificates=2020.10.14=0
+  - certifi=2020.6.20=py38_0
+  - fastcache=1.1.0=py38h7b6447c_0
+  - gmp=6.1.2=hb3b607b_0
+  - intel-openmp=2020.2=254
+  - ld_impl_linux-64=2.33.1=h53a641e_7
+  - libedit=3.1.20191231=h14c3975_1
+  - libffi=3.3=he6710b0_2
+  - libgcc-ng=9.1.0=hdf63c60_0
+  - libstdcxx-ng=9.1.0=hdf63c60_0
+  - mkl=2020.2=256
+  - mkl-service=2.3.0=py38he904b0f_0
+  - mkl_fft=1.2.0=py38h23d657b_0
+  - mkl_random=1.1.1=py38h0573a6f_0
+  - mpc=1.1.0=h10f8cd9_1
+  - mpfr=4.0.2=hb69a4c5_1
+  - mpmath=1.1.0=py38_0
+  - ncurses=6.2=he6710b0_1
+  - numpy=1.19.2=py38h54aff64_0
+  - numpy-base=1.19.2=py38hfa32c7d_0
+  - openssl=1.1.1h=h7b6447c_0
+  - pip=20.2.4=py38_0
+  - python=3.8.5=h7579374_1
+  - python_abi=3.8=1_cp38
+  - readline=8.0=h7b6447c_0
+  - setuptools=50.3.0=py38hb0f4dca_1
+  - six=1.15.0=py_0
+  - sqlite=3.33.0=h62c20be_0
+  - sympy=1.6.2=py38_0
+  - tk=8.6.10=hbc83047_0
+  - tqdm=4.51.0=pyh9f0ad1d_0
+  - wheel=0.35.1=py_0
+  - xz=5.2.5=h7b6447c_0
+  - zlib=1.2.11=h7b6447c_3
+  - pip:
+    - click==7.1.2
+    - flask==1.1.2
+    - flask-wtf==0.14.3
+    - gmpy2==2.0.8
+    - itsdangerous==1.1.0
+    - jinja2==2.11.2
+    - markupsafe==1.1.1
+    - paillierlib==0.0.2
+    - werkzeug==1.0.1
+    - wtforms==2.3.3
+prefix: /home/gera/anaconda3/envs/deepcrypt
