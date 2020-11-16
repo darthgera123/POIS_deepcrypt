@@ -87,21 +87,24 @@ def dot(a,b,key_pair):
 	Encrypt server side and then compute
 	Return encrypted output
 	"""
-	print(b)
 	vector_b_encrypt = []
 	for each in b:
 	    each = mpz(each)
 	    c1 = paillier.encrypt(each, key_pair.public_key)
 	    vector_b_encrypt.append(c1)
 
-	fval = 0
+	fval = []
 	for ind,each in enumerate(vector_b_encrypt):
 	    c2 = mpz(a[ind])
 	    c1 = each
-	    x = paillier.decrypt(c1 * c2, key_pair.private_key)
-	    fval += x
-	print(fval)
-	return paillier.encrypt(fval,key_pair.public_key)
+	    # x = paillier.decrypt(c1 * c2, key_pair.private_key)
+	    x = c1*c2
+	    fval.append(x)
+	fsum = fval[0]
+	for val in fval[1:]:
+		fsum+=val
+	# return paillier.encrypt(fval,key_pair.public_key)
+	return fsum 
 
 def compute_dot(inp_vec,weights,key_pair):
 	encrypted_dot_product = []
