@@ -15,3 +15,9 @@ for i in tqdm(range(20)):
 			print("Test Failed")
 		elif a > b and out == 1:
 			print("Test Failed")
+
+
+
+# client ke paas vector hai  , lekin key nhi hai
+# client call krega set_veu11_operands , 
+# client cal krega no

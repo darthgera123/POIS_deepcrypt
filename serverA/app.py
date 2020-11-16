@@ -28,15 +28,16 @@ from flask import Response, Flask, jsonify, render_template, request, url_for, r
 from werkzeug.utils import secure_filename
 # from forms import DataForm
 import requests
-import dgk as dgk
+from POIS_deepcrypt.dgk import *
 import numpy as np
 import sys
 import random
-import goldwasser_micali as gm 
+import POIS_deepcrypt.goldwasser_micali as gm 
 from gmpy2 import mpz
 from paillierlib import paillier
 from sympy.core.numbers import mod_inverse
-
+import json
+from tqdm import tqdm
 def get_bits(n, l):
     bits = []
     for i in range(l):
@@ -52,7 +53,7 @@ app.config["DEBUG"] = True
 config = {
     'dgk_priv': None,
     'dgk_pub': None,
-    'dgk_l': 20,
+    'dgk_l': 100,
     "paillier_priv" : None,
     "paillier_pub" : None,
     "gm_priv" : None,
@@ -62,6 +63,7 @@ data = {
     'compare_operand': None,
     'veu11_operand1':None,
     'veu11_operand2':None,
+    'private_b_var':None,
 }
 
 ############  DGK #########################
@@ -337,6 +339,7 @@ def veu11_init():
     if response.status_code != 200:
         print("Public Key sharing failed")
 
+        
     return Response("", status=200)
     
 @app.route('/veu11_set_pub', methods=['POST'])
@@ -447,6 +450,157 @@ def set_veu11_operands():
     data['veu11_operand1'] = paillier.encrypt(mpz(request.json['val1']), config["paillier_pub"])
     data['veu11_operand2'] = paillier.encrypt(mpz(request.json['val2']), config["paillier_pub"])
     return Response(status=200)
+
+
+def serialize(x):
+	pn = int(x.n)
+	pc = int(x.c)
+	dic={"paillier_c":pc,"paillier_n":pn}
+	return dic
+
+def deserialize(x):
+	y = paillier.PaillierCiphertext(x["paillier_c"],x["paillier_n"])
+	return y
+
+def refresh_b( num ,pubk , privk):
+
+	plainval = paillier.decrypt( num , privk )
+	re_enc = paillier.encrypt( plainval , pubk )
+	return re_enc
+
+@app.route("/argmax_init", methods=['GET', 'POST'])
+def argmax_init():
+	global data,config
+	config['dgk_l']=request.json['l']
+	data[ 'private_b_var' ]= 0
+
+@app.route("/argmax_request_index", methods=['GET', 'POST'])
+def argmax_request_index():
+	global config, data
+	if not config['paillier_pub'] or not config['paillier_priv']:
+		print("Key inconsistency for Veu11.")
+		return Response("", status=404)
+	if not config['gm_pub'] or not config['gm_priv']:
+		print("Key inconsistency for Goldwasser Micali.")
+		return Response("", status=404)
+	return jsonify( bvar = data['private_b_var'] )
+
+@app.route("/argmax_compare", methods=['GET', 'POST'])
+def argmax_compare():
+	global config, data
+	if not config['paillier_pub'] or not config['paillier_priv']:
+		print("Key inconsistency for Veu11.")
+		return Response("", status=404)
+	if not config['gm_pub'] or not config['gm_priv']:
+		print("Key inconsistency for Goldwasser Micali.")
+		return Response("", status=404)
+
+	qr_privk = config['gm_priv']
+	pubk = config['paillier_pub']
+	privk = config['paillier_priv']
+
+	cheat = deserialize(request.json['cheat'])
+	print(paillier.decrypt(cheat,privk),"CHEAT DEBUG SHUBHU")
+		
+	enc_bit = request.json['enc_bit'] 
+	idx = request.json['idx'] 
+	ai_rand =  deserialize( request.json['ai_rand'] )
+	mx_rand =  deserialize( request.json['mx_rand'] )
+	l =  request.json['l'] 
+
+	isless = bool(gm.decrypt([enc_bit],qr_privk))
+
+	if isless:
+		data['private_b_var'] = idx
+		print( idx , data['private_b_var']  , "DEBUG INDEX")
+		vi = refresh_b( ai_rand , pubk , privk )
+		bit_paillier = paillier.encrypt(1,pubk)
+	else:	
+		vi = refresh_b( mx_rand , pubk , privk )
+		bit_paillier = paillier.encrypt(0,pubk)
+
+	return jsonify( bi = serialize(bit_paillier) , vi = serialize(vi) )	
+
+	
+
+@app.route("/argmax_vector_nokey", methods=['GET', 'POST'])
+def argmax_vector_nokey():
+
+	global config,data
+
+	x = request.json['inp']["a1"]
+	x = x.split(";")
+	y = request.json['inp']["a2"]
+	y = y.split(";")
+	l = request.json['inp']["a3"]
+
+	inp=[]
+
+	config['dgk_l'] = l
+
+	print(l)
+
+	for i in range(len(x)):
+		inp.append(paillier.PaillierCiphertext(mpz(x[i]),mpz(y[i])))
+
+	inp=np.array(inp)
+	perm=np.arange(0,inp.shape[0])
+	shuf_inp = inp[ perm ]
+	mxval = shuf_inp[ 0 ]
+
+	requests.post("http://127.0.0.1:8000/argmax_init",json={"l":l})
+
+	pubk = config["paillier_pub"]
+
+	for i in tqdm(range(1,len(shuf_inp))):
+		
+		ai = shuf_inp[ i ]	
+		
+		data['veu11_operand1'] = mxval
+		data['veu11_operand2'] = ai
+		
+		resp = (veu11_compare_no_priv())
+
+		enc_bit , dec = resp.json['t'],resp.json['t_dec']
+
+		print(dec,"DEBUG")
+
+		r = random.getrandbits( l + 1 )
+		s = random.getrandbits( l + 1 )
+		
+		enc_r = paillier.encrypt( r , pubk )
+		enc_s = paillier.encrypt( s , pubk )
+
+		mx_rand = mxval + enc_r
+		ai_rand = ai + enc_s
+
+		ret = requests.post("http://127.0.0.1:8000/argmax_compare", json={"mx_rand":serialize(mx_rand), "ai_rand":serialize(ai_rand),"l":l,"enc_bit":enc_bit,"idx":i,"cheat":serialize(mxval)})
+
+		print( ret , "COMPARE REQUEST SENT" )
+		bi , vi = deserialize(ret.json()['bi']),deserialize(ret.json()['vi'])
+		one_enc = paillier.encrypt(mpz(1),pubk)
+
+		remove_r = ( bi - one_enc ) * r
+		remove_s = bi * s
+
+		vi = vi + remove_r
+		vi = vi - remove_s
+		mxval = vi
+
+	shuf_idx = requests.post("http://127.0.0.1:8000/argmax_request_index")
+	ret = {"answer":str(perm[ shuf_idx.json()['bvar'] ])}	
+	return jsonify(ans=ret)
+
+@app.route("/share_public_key", methods=['GET', 'POST'])
+def share_public_key():
+	global config
+	if not config['paillier_pub'] or config['paillier_priv']:
+		print("Key inconsistency for Veu11.")
+		return Response("", status=404)
+
+	spk = {"n":str(config['paillier_pub'].n), "g":str(config['paillier_pub'].g)}	
+	return jsonify(pbk=spk)    	
+
 
 # argv1 is the port number 
 if __name__=='__main__':
