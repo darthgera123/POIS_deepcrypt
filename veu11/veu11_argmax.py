@@ -5,7 +5,8 @@ from POIS_deepcrypt.dgk import *
 from POIS_deepcrypt.goldwasser_micali import goldwasser_micali as gm 
 from paillierlib import paillier
 from gmpy2 import mpz
-
+import sys
+# sys.path.append("../")
 
 pub_key = "../dgk/pub.npy"
 priv_key = "../dgk/priv.npy"

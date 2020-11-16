@@ -4,8 +4,8 @@ from gmpy2 import mpz,mpfr
 import random
 import copy
 from tqdm import tqdm
-import goldwasser_micali as gm
-from Naiive_Bayes.ArgMax import handler_A
+import POIS_deepcrypt.goldwasser_micali as gm
+from POIS_deepcrypt.Naiive_Bayes.ArgMax import handler_A
 
 def getFeatureValues():
 	#Random generation
