@@ -499,8 +499,8 @@ def argmax_compare():
 	pubk = config['paillier_pub']
 	privk = config['paillier_priv']
 
-	cheat = deserialize(request.json['cheat'])
-	print(paillier.decrypt(cheat,privk),"CHEAT DEBUG SHUBHU")
+	# cheat = deserialize(request.json['cheat'])
+	# print(paillier.decrypt(cheat,privk),"CHEAT DEBUG SHUBHU")
 		
 	enc_bit = request.json['enc_bit'] 
 	idx = request.json['idx'] 

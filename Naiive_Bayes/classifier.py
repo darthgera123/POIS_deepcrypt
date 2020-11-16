@@ -6,6 +6,7 @@ from gmpy2 import mpfr
 import random
 import copy
 from tqdm import tqdm
+from POIS_deepcrypt.Naiive_Bayes import ArgMax as ARG
 #################################################################################################################
 #server side functions , all inputs are np arrays
 
@@ -28,6 +29,8 @@ def paillier_enc(x):
 
 def removeFloats( class_prior_list , conditional_prob_list ):
 
+	#print(class_prior_list)
+	#print(conditional_prob_list)
 	numpy_frexp = np.vectorize( math.frexp )
 
 	significand_list , exponents_list = numpy_frexp( class_prior_list.flatten() )
@@ -39,6 +42,8 @@ def removeFloats( class_prior_list , conditional_prob_list ):
 	min_exponent = min( min_exponent , min( exponents_list ) )
 
 	pwr = 52 - min_exponent
+
+	# #print( pwr )
 
 	Multiplier = mpfr( mpfr(2)**( pwr ) )
 	
@@ -58,6 +63,9 @@ def removeFloats( class_prior_list , conditional_prob_list ):
 	
 	class_prior_list = numpy_cast( class_prior_list )
 
+	#print(class_prior_list)
+	#print(conditional_prob_list)
+
 	return class_prior_list , conditional_prob_list
 
 
@@ -67,7 +75,7 @@ def encrypt( class_prior_list , conditional_prob_list ):
 	l1 = numpy_enc( class_prior_list )
 	x,y,z=conditional_prob_list.shape
 
-	print(x,y,z)
+	#print(x,y,z)
 	for i in tqdm(range(x)):
 		for j in range(y):
 			for k in range(z):
@@ -98,7 +106,7 @@ def prepareBayesTables( class_prior_list , conditional_prob_list ):
 	# 			v2 = paillier.decrypt(l2[i][j][k],key_pair.private_key)
 	# 			if v1 != v2 and once == 0:
 	# 				once = 1
-	# 				print(v1,v2)
+	# 				#print(v1,v2)
 	# ###########################################
 
 
@@ -107,8 +115,8 @@ def prepareBayesTables( class_prior_list , conditional_prob_list ):
 def fetchTables():
 
 	num_classes = 10
-	num_features = 30
-	dist_values_feature = 20
+	num_features = 20
+	dist_values_feature = 30
 
 
 	conditional_prob_list = []	
@@ -148,16 +156,24 @@ def getProbabilityTables():
 
 ####################################################################################################################
 
+
+def gx(x,f):
+	global key_pair
+	if f:
+		return x
+	return 	paillier.decrypt(x,key_pair.private_key)
+
 #client side functions
 
 #mapping is a dictionary which tells the index of a value 'x' of the jth feature 
-def computeClassProbs( inp_vec , class_prior_list , conditional_prob_list , mapping):
+def computeClassProbs( inp_vec , class_prior_list , conditional_prob_list , mapping , flag):
 	class_posterior_list = []
-
+	# #print(conditional_prob_list.shape)
 	for class_index in range( conditional_prob_list.shape[0] ):
 
 		class_prob = class_prior_list[ class_index ]
-
+		# #print("**********************************************************")	
+		# #print(gx(class_prior_list[ class_index ],flag),end='????????')
 		for feature_index in range(conditional_prob_list.shape[1]):
 
 			probabilities = conditional_prob_list[ class_index ][ feature_index ]
@@ -166,8 +182,12 @@ def computeClassProbs( inp_vec , class_prior_list , conditional_prob_list , mapp
 
 			index = mapping[ feature_index ][ feature_value ]
 
-			class_prob += probabilities[ index ] 
+			class_prob = class_prob + probabilities[ index ] 
+			# #print( index , probabilities[ index ] , feature_value )
+			# #print( gx(probabilities[ index ],flag) ,end='??????????????????')
 
+		# #print(gx(class_prob,flag))
+		# #print("**********************************************************")	
 		class_posterior_list.append(class_prob)	
 
 	return np.array( class_posterior_list )	
@@ -181,8 +201,8 @@ def getFeatureValues():
 	#Random generation
 	feature_values = []
 	mapping = []
-	num_features = 30
-	dist_values_feature = 20
+	num_features = 20
+	dist_values_feature = 30
 
 	for i in range(num_features):
 		mapping.append({})
@@ -212,6 +232,7 @@ def genInput(mapping):
 		for key in values:
 			possible.append(key)
 		inp.append(random.choice(possible))	
+	#print("weg",mapping,inp)
 	return inp	
 
 
@@ -220,14 +241,27 @@ def Bayes():
 
 	inp_vec = genInput(mapping)
 
+	#print(inp_vec,mapping)
 	class_prior_list , conditional_prob_list , clp_plain , cop_plain = getProbabilityTables()
 
-	class_posterior_list = computeClassProbs( inp_vec , class_prior_list , conditional_prob_list , mapping )
+	class_posterior_list = computeClassProbs( inp_vec , class_prior_list , conditional_prob_list , mapping ,False)
 	
-	class_posterior_list_unenc = computeClassProbs( inp_vec , clp_plain , cop_plain , mapping )
+	class_posterior_list_unenc = computeClassProbs( inp_vec , clp_plain , cop_plain , mapping ,True)
 
-	print((class_posterior_list_unenc),"ON UNENCRYPTED DATA BEST CLASS IS:" , np.argmax(class_posterior_list)+1)
+	global key_pair
+	# for i in range(len(class_posterior_list_unenc)):
+	# 	x = class_posterior_list_unenc[ i ]
+	# 	y = paillier.decrypt( class_posterior_list[ i ] , key_pair.private_key )
+	# 	#print(x,y)
 
-	#encrypted best class found by argmax protocol
+	print("ON UNENCRYPTED DATA BEST CLASS IS:" , np.argmax(class_posterior_list_unenc) + 1)
+
+	
+	#print(class_posterior_list_unenc)
+
+	idx = ARG.handler_A(np.array(class_posterior_list),75,key_pair.public_key,key_pair.private_key)
+	print("ON ENCRYPTED DATA BEST CLASS IS:" , idx + 1 )
 
 Bayes()
+
+
