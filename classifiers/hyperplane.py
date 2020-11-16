@@ -108,8 +108,11 @@ def compute_dot(inp_vec,weights,key_pair):
 	for i in range(len(weights)):
 		output = dot(inp_vec,weights[i].tolist(),key_pair)
 		encrypted_dot_product.append(output)
-	return encrypted_dot_product
+	return np.asarray(encrypted_dot_product)
 
 encrypted_vec = compute_dot(inp_vec,weights,key_pair)
+print(encrypted_vec)
+# argmax
 index = handler_A(encrypted_vec,10,key_pair.public_key,key_pair.private_key)
+# return class
 print(index)
