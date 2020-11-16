@@ -1,7 +1,7 @@
 import random
 from tqdm import tqdm
-from POIS_deepcrypt.dgk_compare import dgk_comp_argmax as DGK
 from POIS_deepcrypt.dgk import *
+from POIS_deepcrypt.dgk_compare import dgk_comp_argmax as DGK
 from POIS_deepcrypt.goldwasser_micali import goldwasser_micali as gm 
 from paillierlib import paillier
 from gmpy2 import mpz
