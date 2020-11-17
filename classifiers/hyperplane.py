@@ -49,14 +49,16 @@ def encrypt_weights(weights,public_key):
 
 if __name__ == '__main__':
 	# Input will be of the form 1*d
-	inp_vec = [1330,1550]
+	# inp_vec = [1330,1550]
+	inp_vec = [ 491,   20, 7384,  850,  706, 473, 238, 977, 177, 341]
 	# Weights will be of the form d*k. Size of each array is d and number of arrays are k
-	weights = np.array([[-13,15],[10,-20],[-11,14]])
+	# weights = np.array([[-13,15],[10,-20],[-11,14]])
+	weights = np.random.randint(low=0,high=10000,size=(5,10))
 	# Creates the paillier public key
 	key_pair = paillier.keygen()
-	#Encrypting the weights
+	# Encrypting the weights
 	encrypted_weights = encrypt_weights(weights,key_pair.public_key)
-	#Computing dot product to get 1*k vector
+	# Computing dot product to get 1*k vector
 	encrypted_vec = compute_dot(inp_vec,encrypted_weights,key_pair.public_key)
 
 	# argmax
