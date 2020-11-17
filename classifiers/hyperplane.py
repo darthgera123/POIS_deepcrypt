@@ -34,13 +34,11 @@ gm_dec = gm.decrypt(gm_enc,gm_key['priv'])
 """
 Encrypting the weights
 """
-# encrypted_weights = []
-# for xi in weights:
-# 	if xi == 0 or xi == 1:
-# 		encrypted_weights.append(gm.encrypt(xi,gm_key['pub']))
-# 	else:
-# 		encrypted_weights.append(paillier_enc(xi,key_pair.public_key))
-
+encrypted_weights = []
+for w in weights:
+	ki = w.tolist()
+	encrypted_class = [paillier_enc(xi,key_pair.public_key) for xi in ki]
+	encrypted_weights.append(encrypted_class)
 """
 Server Side functions
 """
@@ -50,13 +48,13 @@ def dot(a,b,public_key):
 	Encrypt server side and then compute
 	Return encrypted output
 	"""
-	vector_b_encrypt = []
-	for each in b:
-	    each = mpz(each)
-	    c1 = paillier.encrypt(each, public_key)
-	    vector_b_encrypt.append(c1)
+	# vector_b_encrypt = []
+	# for each in b:
+	#     each = mpz(each)
+	#     c1 = paillier.encrypt(each, public_key)
+	#     vector_b_encrypt.append(c1)
 	fval = []
-	for ind,each in enumerate(vector_b_encrypt):
+	for ind,each in enumerate(b):
 	    c2 = mpz(a[ind])
 	    c1 = each
 	    x = c1*c2
@@ -69,11 +67,11 @@ def dot(a,b,public_key):
 def compute_dot(inp_vec,weights,public_key):
 	encrypted_dot_product = []
 	for i in range(len(weights)):
-		output = dot(inp_vec,weights[i].tolist(),public_key)
+		output = dot(inp_vec,weights[i],public_key)
 		encrypted_dot_product.append(output)
 	return np.asarray(encrypted_dot_product)
 
-encrypted_vec = compute_dot(inp_vec,weights,key_pair.public_key)
+encrypted_vec = compute_dot(inp_vec,encrypted_weights,key_pair.public_key)
 
 # argmax
 index = handler_A(encrypted_vec,20,key_pair.public_key,key_pair.private_key)
