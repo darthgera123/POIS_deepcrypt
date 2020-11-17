@@ -6,7 +6,11 @@ from gmpy2 import mpfr
 import random
 import copy
 from tqdm import tqdm
-from POIS_deepcrypt.Naiive_Bayes import argmax as ARG
+import random	
+import requests
+import json
+import math
+from test_argmax import *
 #################################################################################################################
 #server side functions , all inputs are np arrays
 
@@ -15,7 +19,7 @@ from POIS_deepcrypt.Naiive_Bayes import argmax as ARG
 #conditional_prob_list is a 2-d array of 1-d lists , A[i][j] is a list of conditional probabilities 
 # corresponding to ith class and jth features 
 
-key_pair = paillier.keygen()
+key_pair = np.load("./PAILLIER_KEY.npy")[0]
 
 
 def typecast_fl(x):
@@ -114,9 +118,9 @@ def prepareBayesTables( class_prior_list , conditional_prob_list ):
 
 def fetchTables():
 
-	num_classes = 10
-	num_features = 20
-	dist_values_feature = 30
+	num_classes = 5
+	num_features = 10
+	dist_values_feature = 10
 
 
 	conditional_prob_list = []	
@@ -168,26 +172,23 @@ def gx(x,f):
 #mapping is a dictionary which tells the index of a value 'x' of the jth feature 
 def computeClassProbs( inp_vec , class_prior_list , conditional_prob_list , mapping , flag):
 	class_posterior_list = []
-	# #print(conditional_prob_list.shape)
 	for class_index in range( conditional_prob_list.shape[0] ):
 
+		# class_prob = class_prior_list[ class_index ]
+		# for feature_index in range( conditional_prob_list.shape[1] ):
+
+		# 	probabilities = conditional_prob_list[ class_index ][ feature_index ]
+
+		# 	feature_value = inp_vec[ feature_index ]
+
+		# 	# index = mapping[ feature_index ][ feature_value ]
+		# 	index = feature_value
+
+			# class_prob = class_prob + probabilities[ index ] 
+		
 		class_prob = class_prior_list[ class_index ]
-		# #print("**********************************************************")	
-		# #print(gx(class_prior_list[ class_index ],flag),end='????????')
-		for feature_index in range(conditional_prob_list.shape[1]):
-
-			probabilities = conditional_prob_list[ class_index ][ feature_index ]
-
-			feature_value = inp_vec[ feature_index ]
-
-			index = mapping[ feature_index ][ feature_value ]
-
-			class_prob = class_prob + probabilities[ index ] 
-			# #print( index , probabilities[ index ] , feature_value )
-			# #print( gx(probabilities[ index ],flag) ,end='??????????????????')
-
-		# #print(gx(class_prob,flag))
-		# #print("**********************************************************")	
+		probabilities = conditional_prob_list[ class_index ][ np.arange(conditional_prob_list.shape[1]) , inp_vec ]  
+		class_prob = class_prob + np.sum(probabilities)
 		class_posterior_list.append(class_prob)	
 
 	return np.array( class_posterior_list )	
@@ -201,8 +202,8 @@ def getFeatureValues():
 	#Random generation
 	feature_values = []
 	mapping = []
-	num_features = 20
-	dist_values_feature = 30
+	num_features = 10
+	dist_values_feature = 10
 
 	for i in range(num_features):
 		mapping.append({})
@@ -224,65 +225,88 @@ def getFeatureValues():
 	return 	feature_values , mapping	
 
 
-def genInput(mapping):
-	#random input generated
-	inp=[]
-	for values in mapping:
-		possible = []
-		for key in values:
-			possible.append(key)
-		inp.append(random.choice(possible))	
-	#print("weg",mapping,inp)
-	return inp	
+def genInputSimple():
 
+	inp = []
+	possible = np.arange(10)
+	for i in range(10):
+		inp.append(random.choice(possible))	
+	return inp
 
 def Bayes():
-	# feature_values,mapping = getFeatureValues()
-
-	# inp_vec = genInput(mapping)
-
-	# #print(inp_vec,mapping)
-	# class_prior_list , conditional_prob_list , clp_plain , cop_plain = getProbabilityTables()
-		
-	# DATA = np.load("./DATA.npz")	
-
-	# for 
-	class_posterior_list = computeClassProbs( inp_vec , class_prior_list , conditional_prob_list , mapping ,False)
-	
-	# class_posterior_list_unenc = computeClassProbs( inp_vec , clp_plain , cop_plain , mapping ,True)
-
 	global key_pair
-	# for i in range(len(class_posterior_list_unenc)):
-	# 	x = class_posterior_list_unenc[ i ]
-	# 	y = paillier.decrypt( class_posterior_list[ i ] , key_pair.private_key )
-	# 	#print(x,y)
-
-	print("ON UNENCRYPTED DATA BEST CLASS IS:" , np.argmax(class_posterior_list_unenc) + 1)
-
-	
-	#print(class_posterior_list_unenc)
-
-	idx = ARG.handler_A(np.array(class_posterior_list),75,key_pair.public_key,key_pair.private_key)
-	print("ON ENCRYPTED DATA BEST CLASS IS:" , idx + 1 )
-
-def GetData():
 
 	feature_values,mapping = getFeatureValues()
-	
 	class_prior_list , conditional_prob_list , clp_plain , cop_plain = getProbabilityTables()
 
-	for i in range(1000):
-		inp_vec = genInput(mapping)
-		class_posterior_list = computeClassProbs( inp_vec , class_prior_list , conditional_prob_list , mapping ,False)
+	DATA ,LABEL= [],[]
+	for i in range(20):
+		inp_vec = genInputSimple()
 		DATA.append(inp_vec)
-		LABELS.append(np.argmax(np.array(class_posterior_list)))
 
-	np.save("./ClassPriors",class_prior_list)	
-	np.save("./CondProbs",conditional_prob_list)
-	np.save("./DATA",DATA)	
-	np.save("./LABELS",LABELS)	
+	corr = 0	
+	for i in tqdm(range(20)):
+		inp_vec = DATA[ i ]
 
+		class_posterior_list = computeClassProbs( inp_vec , class_prior_list , conditional_prob_list , mapping ,False)
+		
+		class_posterior_list_unenc = computeClassProbs( inp_vec , clp_plain , cop_plain , mapping ,True)
 
-if __name__=='__main__':
-	GetData()
+		# print("ON UNENCRYPTED DATA BEST CLASS IS:" , np.argmax(class_posterior_list_unenc) + 1)
+		gg = np.argmax(class_posterior_list_unenc)
+		idx = argmax_handler_enc(np.array(class_posterior_list),85)
+		LABEL.append(gg)
+		if gg == idx:
+			corr+=1
+		# print("ON ENCRYPTED DATA BEST CLASS IS:" , idx + 1 )
 
+	LABEL=np.array(LABEL)	
+	DATA=np.array(DATA)
+
+	for i in range(20):
+		toss = random.randint(1,3)
+		if toss == 1:
+			LABEL[i]=random.randint(0,9)
+
+	np.save("./DATA",DATA)		
+	np.save("./LABEL",LABEL)
+	np.save("./CLP_PLAIN",clp_plain)		
+	np.save("./COP_PLAIN",cop_plain)		
+	np.save("./CLP_ENC",class_prior_list)		
+	np.save("./COP_ENC",conditional_prob_list)
+	np.save("./mapping",mapping)		
+			
+	print("ACCURACY IS ",corr*2)
+
+def Bayes2():
+	global key_pair
+
+	conditional_prob_list = np.load("./COP_ENC.npy")
+	class_prior_list = np.load("./CLP_ENC.npy")
+	mapping = np.load("./mapping.npy")
+	cop_plain = np.load("./COP_PLAIN.npy")
+	clp_plain = np.load("./CLP_PLAIN.npy")
+	DATA = np.load("./DATA.npy")
+	LABEL = np.load("./LABEL.npy")
+
+	corr_normal,corr_enc = 0,0	
+	for i in tqdm(range(20)):
+		inp_vec = DATA[ i ]
+
+		class_posterior_list = computeClassProbs( inp_vec , class_prior_list , conditional_prob_list , mapping ,False)
+		
+		class_posterior_list_unenc = computeClassProbs( inp_vec , clp_plain , cop_plain , mapping ,True)
+
+		gg = np.argmax(class_posterior_list_unenc)
+		idx = argmax_handler_enc(np.array(class_posterior_list),85)
+		
+		if gg == LABEL[ i ]:
+			corr_normal += 1
+		if 	idx == LABEL[ i ]:
+			corr_enc += 1
+			
+	print("UNENCRYPTED ACCURACY IS ",corr_normal*2)		
+	print("ENCRYPTED ACCURACY IS ",corr_enc*2)		
+
+Bayes()
+Bayes2()
