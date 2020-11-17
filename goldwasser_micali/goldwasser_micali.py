@@ -215,14 +215,17 @@ def int_encode_char(c):
 def int_encode_str(s):
 	return int(''.join(int_encode_char(c) for c in normalize_str(s)))
 
-# message='hello'
 
-# key = generate_key()
-# print(key)
-# # m = int_encode_str(message)
-# # print("\nMessage:",message, "Encoded:",m)
-# m = 1 
-# enc = encrypt(m, key['pub'])
-# print("\nEncrypted:",enc)
-# dec = decrypt(enc, key['priv'])
-# print("\nDecrypted:",dec)
+if __name__ == '__main__':
+	
+	message='hello'
+
+	key = generate_key()
+	print(key)
+	m = int_encode_str(message)
+	print("\nMessage:",message, "Encoded:",m)
+	m = 1 
+	enc = encrypt(m, key['pub'])
+	print("\nEncrypted:",enc)
+	dec = decrypt(enc, key['priv'])
+	print("\nDecrypted:",dec)

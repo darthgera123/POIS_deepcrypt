@@ -29,3 +29,6 @@
 - line 2: setup(name='myproject', version='1.0', packages=find_packages())
 - run 'pip3 install -e .' in parent directory of POIS_deepcrypt	
 - Use ' from POIS_deepcrypt.dir1.dir2 import file ' to import a file anywhere , then use file.function()  
+
+## FASTER PAILLIER
+-  replace python package ".local/lib/python3.5/site-packages/paillierlib/paillier.py" file's code with fastmod.py 

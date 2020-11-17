@@ -718,7 +718,101 @@ def bayes_handler():
 			correct+=1
 
 	
-	return jsonify(correct=str(correct),tot=str(total)) 		
+	return jsonify(correct=str(correct),tot=str(total))
+
+# @app.route('/dot_unenc', methods=['GET', 'POST'])
+# def dot_unenc():
+#     global config,data
+        
+#     c_value = request.json['val1']
+#     n_value = request.json['val2']
+
+#     dic={"paillier_c":c_value,"paillier_n":n_value}
+#     data = deserialize(dic)
+
+#     unenc = (int)(paillier2.decrypt(data, config["paillier_priv"] ))
+#     return jsonify(unenc=unenc)
+
+# @app.route("/set_dot_product", methods=['GET', 'POST'])
+# def set_dot_product():
+#     global config, data
+#     # print(data, config)
+#     pub = config['paillier_pub']
+#     vector_b_encrypt = []
+#     mdata = request.json['val2']
+
+#     for each in mdata:
+#         c1 = paillier2.encrypt(each, pub)
+#         vector_b_encrypt.append(c1)
+
+
+#     data['unenc_a'] = request.json['val1']
+#     data['enc_b'] = vector_b_encrypt
+#     print(data)
+#     return Response(status=200)
+
+# @app.route("/compute_dot", methods=['GET', 'POST'])
+# def compute_dot():
+#     global config,data
+
+#     vector_b_encrypt = data['enc_b']
+#     vector_a_unencrypt = data['unenc_a']
+#     fval = paillier2.encrypt(0, config["paillier_pub"])
+#     for ind,each in enumerate(vector_b_encrypt):
+#         c2 = mpz(vector_a_unencrypt[ind])
+#         c1 = each
+#         x = c1 * c2
+#         fval += x
+#     w = serialize(fval)
+#     return jsonify(fval=w)
+
+@app.route("/hyperplane_dot", methods=['GET', 'POST'])
+def compute_hyperplane_dot():
+    encrypted_weights = np.load("./encrypted_weights.npy", allow_pickle=True)
+    vector = request.json["vector"]
+
+    dot = compute_dot(vector,encrypted_weights)
+
+    return jsonify(serializeArr(dot, 30))
+        
+
+
+def dot(a, b):
+    fval = []
+    for ind,each in enumerate(b):
+	    c2 = mpz(a[ind])
+	    c1 = each
+	    x = c1*c2
+	    fval.append(x)
+    fsum = fval[0]
+    for val in fval[1:]:
+        fsum+=val
+    return fsum 
+
+def compute_dot(inp_vec, weights):
+    encrypted_dot_product = []
+    for i in range(len(weights)):
+        output = dot(inp_vec, weights[i])
+        encrypted_dot_product.append(output)
+    return np.asarray(encrypted_dot_product)
+
+
+@app.route("/hyperplane_handler", methods=['GET', 'POST'])
+def hyperplane_handler():
+    input_vec = request.json["vector"]
+    response = requests.post("http://127.0.0.1:8000/hyperplane_dot", json={
+        "vector" : input_vec
+    })
+    vals, l = deserialize_arr(response.json())
+    requests.post("http://127.0.0.1:8000/veu11_init")
+    getans = requests.post(
+        "http://127.0.0.1:5000/argmax_vector_nokey", 
+        json={
+            "inp":serializeArr( vals , 30 )
+            }
+        )
+
+    return getans.json()
 
 if __name__=='__main__':
 	app.run(debug=True,port=int(sys.argv[1]))
