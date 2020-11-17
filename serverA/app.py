@@ -38,102 +38,104 @@ from paillierlib import paillier
 from sympy.core.numbers import mod_inverse
 import json
 from tqdm import tqdm
+import time
+
 def get_bits(n, l):
-    bits = []
-    for i in range(l):
-        bits.append(n & 1)
-        n = n >> 1
-    return bits
+	bits = []
+	for i in range(l):
+		bits.append(n & 1)
+		n = n >> 1
+	return bits
 
 def MSB(x, l):
-    return bool(x & pow(2, l))
+	return bool(x & pow(2, l))
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
 config = {
-    'dgk_priv': None,
-    'dgk_pub': None,
-    'dgk_l': 100,
-    "paillier_priv" : None,
-    "paillier_pub" : None,
-    "gm_priv" : None,
-    "gm_pub" : None,
+	'dgk_priv': None,
+	'dgk_pub': None,
+	'dgk_l': 100,
+	"paillier_priv" : None,
+	"paillier_pub" : None,
+	"gm_priv" : None,
+	"gm_pub" : None,
 }
 data = {
-    'compare_operand': None,
-    'veu11_operand1':None,
-    'veu11_operand2':None,
-    'private_b_var':None,
+	'compare_operand': None,
+	'veu11_operand1':None,
+	'veu11_operand2':None,
+	'private_b_var':None,
 }
 
 ############  DGK #########################
 
 def dgk_init_without_route(regen):
-    global config
+	global config
 
-    if regen:
-        config['dgk_priv'], config['dgk_pub'] = dgk.keygen(2048, 160, 18, "./")
-    else:
-        config['dgk_pub'] = np.load("./pub.npy", allow_pickle=True).item()
-        config['dgk_priv'] = np.load("./priv.npy", allow_pickle=True).item()
+	if regen:
+		config['dgk_priv'], config['dgk_pub'] = dgk.keygen(2048, 160, 18, "./")
+	else:
+		config['dgk_pub'] = np.load("./pub.npy", allow_pickle=True).item()
+		config['dgk_priv'] = np.load("./priv.npy", allow_pickle=True).item()
 
-    response = requests.post("http://127.0.0.1:8000/dgk_set_pub", json={
-        'dgk_pub': config['dgk_pub']
-    })
+	response = requests.post("http://127.0.0.1:8000/dgk_set_pub", json={
+		'dgk_pub': config['dgk_pub']
+	})
 
 @app.route('/dgk_init', methods=['GET', 'POST'])
 def dgk_init():
-    global config
-    regen = request.json['regen']
-    if regen:
-        config['dgk_priv'], config['dgk_pub'] = dgk.keygen(2048, 160, 18, "./")
-    else:
-        config['dgk_pub'] = np.load("./pub.npy", allow_pickle=True).item()
-        config['dgk_priv'] = np.load("./priv.npy", allow_pickle=True).item()
+	global config
+	regen = request.json['regen']
+	if regen:
+		config['dgk_priv'], config['dgk_pub'] = dgk.keygen(2048, 160, 18, "./")
+	else:
+		config['dgk_pub'] = np.load("./pub.npy", allow_pickle=True).item()
+		config['dgk_priv'] = np.load("./priv.npy", allow_pickle=True).item()
 
-    response = requests.post("http://127.0.0.1:5000/dgk_set_pub", json={
-        'dgk_pub': config['dgk_pub']
-    })
+	response = requests.post("http://127.0.0.1:5000/dgk_set_pub", json={
+		'dgk_pub': config['dgk_pub']
+	})
 
-    if response.status_code != 200:
-        print("Public Key sharing failed")
+	if response.status_code != 200:
+		print("Public Key sharing failed")
 
-    return Response("", status=200)
+	return Response("", status=200)
 
 
 @app.route('/dgk_set_pub', methods=['POST'])
 def dgk_set_pub():
-    global config
-    
-    config['dgk_pub'] = request.json['dgk_pub']
-    config['dgk_priv'] = None
-    
-    return Response("", status=200)
+	global config
+	
+	config['dgk_pub'] = request.json['dgk_pub']
+	config['dgk_priv'] = None
+	
+	return Response("", status=200)
 
 @app.route('/dgk_encrypt', methods=['POST'])
 def dgk_encrypt():
-    global config
-    
-    if not config['dgk_pub']:
-        print("No public key available.")
-        return Response("", status=404, mimetype='application/json')
-    c = dgk.encrypt(request.json['m'], config['dgk_pub'])
-    
-    return jsonify(c)
+	global config
+	
+	if not config['dgk_pub']:
+		print("No public key available.")
+		return Response("", status=404, mimetype='application/json')
+	c = dgk.encrypt(request.json['m'], config['dgk_pub'])
+	
+	return jsonify(c)
 
 
 @app.route('/dgk_decrypt', methods=['GET', 'POST'])
 def dgk_decrypt():
-    global config
-    if not config['dgk_priv']:
-        print("No private key available.")
-        return Response("", status=404, mimetype='application/json')
+	global config
+	if not config['dgk_priv']:
+		print("No private key available.")
+		return Response("", status=404, mimetype='application/json')
 
-    m = dgk.decrypt_iszero(request.json['c'], config['dgk_priv'])
-    if(m == 1):
-        return jsonify(True)
-    else:
-        return jsonify(False)
+	m = dgk.decrypt_iszero(request.json['c'], config['dgk_priv'])
+	if(m == 1):
+		return jsonify(True)
+	else:
+		return jsonify(False)
 
 ############  DGK #########################
 #test commands: 
@@ -147,168 +149,218 @@ def dgk_decrypt():
 # for now the compare operands are set using the following function as no other function is there to call this procedure
 @app.route("/set_compare_operand", methods=['GET', 'POST'])
 def set_compare_operand():
-    global data
-    data['compare_operand'] = request.json["val"]
-    return Response(status=200)
+	global data
+	data['compare_operand'] = request.json["val"]
+	return Response(status=200)
 
 def set_compare_operand_without_route(val):
-    global data
-    data['compare_operand'] = val
+	global data
+	data['compare_operand'] = val
 
 
 # this is the party with the private key
 # as of now the other party will return the unencrypted del value to this party
 @app.route('/dgk_compare_has_priv', methods=['GET', 'POST'])
 def dgk_compare_has_priv():
-    global config, data
-    if not config['dgk_priv']:
-        print("Private Key not available for DGK.")
-        return Response("", status=404)
+	global config, data
+	if not config['dgk_priv']:
+		print("Private Key not available for DGK.")
+		return Response("", status=404)
 
-    if not data['compare_operand']:
-        print("Comparison operand not set.")
-        return Response("", status=404)        
+	if not data['compare_operand']:
+		print("Comparison operand not set.")
+		return Response("", status=404)        
 
-    # get bits
-    y_b = get_bits(data['compare_operand'], config['dgk_l'])
-    # get encrypted bits
-    y_enc = []
-    for b in y_b:
-        y_enc.append(dgk.encrypt(b, config['dgk_pub']))
+	# get bits
+	y_b = get_bits(data['compare_operand'], config['dgk_l'])
+	# get encrypted bits
+	y_enc = []
+	for b in y_b:
+		y_enc.append(dgk.encrypt(b, config['dgk_pub']))
 
-    response = requests.post("http://127.0.0.1:8000/dgk_compare_no_priv", json={
-        'y_enc': y_enc
-    })
-    
-    c, dela = response.json()
+	response = requests.post("http://127.0.0.1:8000/dgk_compare_no_priv", json={
+		'y_enc': y_enc
+	})
+	
+	c, dela = response.json()
 
-    delb = 0
-    for ci in c:
-        ci_iszero = dgk.decrypt_iszero(ci, config['dgk_priv'])
-        if(ci_iszero):
-            delb = 1
-            break
+	delb = 0
+	for ci in c:
+		ci_iszero = dgk.decrypt_iszero(ci, config['dgk_priv'])
+		if(ci_iszero):
+			delb = 1
+			break
 
-    return jsonify(t=dela ^ delb)
+	return jsonify(t=dela ^ delb)
 
+
+def faster(x,y,md=None):
+	if md == None:
+		return pow(x, y)
+
+	res = 1
+	x = x%md
+	while y > 0: 
+		if y%2 != 0 : 
+			res = (res*x)%md 
+		y = int(y/2) 
+		x = (x*x)%md
+
+	return res
 
 # this is the party without the private key
 # this will send its unencrypted del value to the other party
 @app.route("/dgk_compare_no_priv", methods=['GET', 'POST'])
 def dgk_compare_no_priv():
-    global config, data
+	global config, data
 
-    if not config['dgk_pub'] or config['dgk_priv']:
-        print("Key inconsistency for DGK.")
-        return Response("", status=404)
+	if not config['dgk_pub'] or config['dgk_priv']:
+		print("Key inconsistency for DGK.")
+		return Response("", status=404)
 
-    if not data['compare_operand']:
-        print("Comparison operand not set.")
-        return Response("", status=404)
+	if not data['compare_operand']:
+		print("Comparison operand not set.")
+		return Response("", status=404)
 
-    pub = config['dgk_pub']
-    y_enc = request.json['y_enc']
-    l = len(y_enc)
+	pub = config['dgk_pub']
+	y_enc = request.json['y_enc']
+	l = len(y_enc)
 
-    # get bits
-    x_b = get_bits(data['compare_operand'], config['dgk_l'])
-    # get encrypted bits
-    x_enc = []
-    for b in x_b:
-        x_enc.append(dgk.encrypt(b, pub))
-    x_enc = np.array(x_enc)
-    # get encryption of 1
-    one_enc = dgk.encrypt(1, pub)
-    # get [x xor y]
-    xxory = []
-    for i in range(l):
-        if x_b[i] == 0:
-            xxory.append(y_enc[i])
-        else:
-            xxory.append(
-                    (
-                    (one_enc%pub['n']) *
-                    (mod_inverse(y_enc[i], pub['n'])%pub['n'])
-                    )%pub['n']
-                )
-    xxory = np.array(xxory)
+	# get encryption of 1
+	one_enc = dgk.encrypt(1, pub)
 
-    dela = np.random.randint(0, 2)
-    s = 1 - 2*dela
-    s_enc = dgk.encrypt(s, pub)
+	# get encryption of 0
+	zero_enc = dgk.encrypt(0, pub)
 
-    # precompute xor cubes
-    xor3precomp = [1]*l
-    i = l-2
-    while(i >= 0):
-        xor3precomp[i] = (
-                        (pow(xxory[i+1], 3, pub['n'])%pub['n']) *
-                        (xor3precomp[i+1]%pub['n'])
-                        )%pub['n']
-        i -= 1
-    # compute [c]
-    c = []
-    for i in range(l):
-        temp = (
-                (s_enc%pub['n']) *
-                (x_enc[i]%pub['n']) *
-                (mod_inverse(y_enc[i], pub['n']))%pub['n'] *
-                (xor3precomp[i]%pub['n'])
-                )%pub['n']
-        r = np.random.randint(1, pub['u'])
-        r_dash = random.getrandbits(int(2.5*pub['t']))
-        temp = (
-                pow(temp, r, pub['n']) *
-                pow(pub['h'], r_dash, pub['n'])
-            )%pub['n']
-        c.append(int(temp))
-    # shuffle c 
-    random.shuffle(c)
-    return jsonify(c, dela)
+	# get bits
+	x_b = get_bits(data['compare_operand'], config['dgk_l'])
+	# get encrypted bits
+	x_enc = []
+	for b in x_b:
+		if b == 0:
+			x_enc.append(zero_enc)
+		else:
+			x_enc.append(one_enc)
+	x_enc = np.array(x_enc)
+
+	# get [x xor y]
+	xxory = []
+	for i in range(l):
+		if x_b[i] == 0:
+			xxory.append(y_enc[i])
+		else:
+			xxory.append(
+					(
+					(one_enc%pub['n']) *
+					(mod_inverse(y_enc[i], pub['n'])%pub['n'])
+					)%pub['n']
+				)
+	xxory = np.array(xxory)
+
+	dela = np.random.randint(0, 2)
+	s = 1 - 2*dela
+	s_enc = dgk.encrypt(s, pub)
+
+	# precompute xor cubes
+	xor3precomp = [1]*l
+	i = l-2
+	while(i >= 0):
+		xor3precomp[i] = (
+						(faster(xxory[i+1], 3, pub['n'])%pub['n']) *
+						(xor3precomp[i+1]%pub['n'])
+						)%pub['n']
+		i -= 1
+	xor3precomp = np.array(xor3precomp)
+
+
+	# compute [c]
+	c = []
+	pubn, pubu, pubt, pubh = pub['n'], pub['u'], pub['t'], pub['h']
+	# precomputed to save time
+	dgk_rdash = np.load("r_dash.npy", allow_pickle=True)
+
+	# temp_arr = (
+	# 			(s_enc%pubn) *
+	# 			(x_enc%pubn) *
+	# 			(xor3precomp%pubn)
+	# 			)%pubn
+	for i in range(l):
+		temp = (
+				(s_enc%pubn) *
+				(x_enc[i]%pubn) *
+				(mod_inverse(y_enc[i], pubn))%pubn *
+				(xor3precomp[i]%pubn)
+				)%pubn
+		# temp = (temp_arr[i] * (mod_inverse(y_enc[i], pubn))%pubn)%pubn
+
+		r = np.random.randint(1, pubu)
+		r_dash = random.getrandbits(int(2.5*pubt))
+
+		temp = (
+				faster(temp, r, pubn) *
+				np.random.choice(dgk_rdash)
+				# faster(pubh, r_dash, pubn)
+			)%pubn
+		c.append(int(temp))
+
+	# shuffle c 
+	random.shuffle(c)
+
+	return jsonify(c, dela)
 
 def dgk_compare_has_priv_without_route():
-    global config, data
+	global config, data
 
-    if not config['dgk_priv']:
-        print("Private Key not available for DGK.")
-        return Response("", status=404)
+	if not config['dgk_priv']:
+		print("Private Key not available for DGK.")
+		return Response("", status=404)
 
-    if not data['compare_operand']:
-        print("Comparison operand not set.")
-        return Response("", status=404)        
+	if not data['compare_operand']:
+		print("Comparison operand not set.")
+		return Response("", status=404)        
 
-    # get bits
-    y_b = get_bits(data['compare_operand'], config['dgk_l'])
-    # get encrypted bits
-    y_enc = []
-    for b in y_b:
-        y_enc.append(dgk.encrypt(b, config['dgk_pub']))
+	pub = config['dgk_pub']
+	# get encryption of 1
+	one_enc = dgk.encrypt(1, pub)
 
-    response = requests.post("http://127.0.0.1:8000/dgk_compare_no_priv", json={
-        'y_enc': y_enc
-    })
-    
-    c, dela = response.json()
-    c = [mpz(i) for i in c]
+	# get encryption of 0
+	zero_enc = dgk.encrypt(0, pub)
 
-    delb = 0
-    for ci in c:
-        ci_iszero = dgk.decrypt_iszero(ci, config['dgk_priv'])
-        if(ci_iszero):
-            delb = 1
-            break
+	# get bits
+	y_b = get_bits(data['compare_operand'], config['dgk_l'])
+	# get encrypted bits
+	y_enc = []
+	for b in y_b:
+		if b == 0:
+			y_enc.append(zero_enc)
+		else:
+			y_enc.append(one_enc)
 
-    N, _ = config["gm_pub"]
-    
-    c1 = gm.encrypt(dela, config["gm_pub"])
-    c2 = gm.encrypt(delb, config["gm_pub"])
-    # one = gm.encrypt(1, config["gm_pub"])
-    
-    c1_bit = list(c1)[0]
-    c2_bit = list(c2)[0]
-    # one_bit = list(one)[0]
+	response = requests.post("http://127.0.0.1:8000/dgk_compare_no_priv", json={
+		'y_enc': y_enc
+	})
+	
+	c, dela = response.json()
+	c = [mpz(i) for i in c]
 
-    return ((c1_bit%N * c2_bit%N)%N)
+	delb = 0
+	for ci in c:
+		ci_iszero = dgk.decrypt_iszero(ci, config['dgk_priv'])
+		if(ci_iszero):
+			delb = 1
+			break
+
+	N, _ = config["gm_pub"]
+	
+	c1 = gm.encrypt(dela, config["gm_pub"])
+	c2 = gm.encrypt(delb, config["gm_pub"])
+	# one = gm.encrypt(1, config["gm_pub"])
+	
+	c1_bit = list(c1)[0]
+	c2_bit = list(c2)[0]
+	# one_bit = list(one)[0]
+
+	return ((c1_bit%N * c2_bit%N)%N)
 
 ######################## DGK compare #############################
 # test commands:
@@ -321,135 +373,135 @@ def dgk_compare_has_priv_without_route():
 
 @app.route('/veu11_init', methods=['GET', 'POST'])
 def veu11_init():
-    global config
-    key_pair = np.load("./PAILLIER_KEY.npy")[0]
-    gm_key_pair = np.load("./GM_KEY.npy")[0]
+	global config
+	key_pair = np.load("./PAILLIER_KEY.npy", allow_pickle=True)[0]
+	gm_key_pair = np.load("./GM_KEY.npy", allow_pickle=True)[0]
 
-    config["paillier_priv"] = key_pair.private_key
-    config["paillier_pub"] = key_pair.public_key
-    config["gm_priv"] = gm_key_pair["priv"]
-    config["gm_pub"] = gm_key_pair["pub"]
+	config["paillier_priv"] = key_pair.private_key
+	config["paillier_pub"] = key_pair.public_key
+	config["gm_priv"] = gm_key_pair["priv"]
+	config["gm_pub"] = gm_key_pair["pub"]
 
-    public_key = {"n":int(key_pair.public_key.n), "g":int(key_pair.public_key.g)}
+	public_key = {"n":int(key_pair.public_key.n), "g":int(key_pair.public_key.g)}
 
-    response = requests.post("http://127.0.0.1:5000/veu11_set_pub", json={
-        'paillier_pub': public_key,
-        'gm_pub': config["gm_pub"],
-    })
-    if response.status_code != 200:
-        print("Public Key sharing failed")
-
-        
-    return Response("", status=200)
-    
+	response = requests.post("http://127.0.0.1:5000/veu11_set_pub", json={
+		'paillier_pub': public_key,
+		'gm_pub': config["gm_pub"],
+	})
+	if response.status_code != 200:
+		print("Public Key sharing failed")
+		
+	return Response("", status=200)
+	
 @app.route('/veu11_set_pub', methods=['POST'])
 def veu11_set_pub():
-    global config
-    public_key = request.json["paillier_pub"]
+	global config
+	public_key = request.json["paillier_pub"]
 
-    config['paillier_pub'] = paillier.PaillierPublicKey(n=mpz(public_key["n"]), g=int(public_key["g"]))
-    config['gm_pub'] = request.json['gm_pub']   
-    config['paillier_priv'] = None
-    config['gm_priv'] = None
-    
-    return Response("", status=200)
+	config['paillier_pub'] = paillier.PaillierPublicKey(n=mpz(public_key["n"]), g=int(public_key["g"]))
+	config['gm_pub'] = request.json['gm_pub']   
+	config['paillier_priv'] = None
+	config['gm_priv'] = None
+	
+	return Response("", status=200)
 
 @app.route("/veu11_compare_no_priv", methods=['GET', 'POST'])
 def veu11_compare_no_priv():
 
-    global config, data
+	global config, data
 
-    if not config['paillier_pub'] or config['paillier_priv']:
-        print("Key inconsistency for Veu11.")
-        return Response("", status=404)
+	if not config['paillier_pub'] or config['paillier_priv']:
+		print("Key inconsistency for Veu11.")
+		return Response("", status=404)
 
-    if not config['gm_pub'] or config['gm_priv']:
-        print("Key inconsistency for Goldwasser Micali.")
-        return Response("", status=404)
+	if not config['gm_pub'] or config['gm_priv']:
+		print("Key inconsistency for Goldwasser Micali.")
+		return Response("", status=404)
 
-    if not data['veu11_operand1'] or not data["veu11_operand2"]:
-        print("Comparison operands not set for Veu11.")
-        return Response("", status=404)
+	if not data['veu11_operand1'] or not data["veu11_operand2"]:
+		print("Comparison operands not set for Veu11.")
+		return Response("", status=404)
 
-    encrypted_a = data["veu11_operand1"]
-    encrypted_b = data["veu11_operand2"]
-    l = config['dgk_l']
+	encrypted_a = data["veu11_operand1"]
+	encrypted_b = data["veu11_operand2"]
+	l = config['dgk_l']
 
-    x = encrypted_b + paillier.encrypt(mpz(pow(2, l)), config["paillier_pub"]) - encrypted_a
-    r = random.getrandbits(l + 2)
-    z = x + paillier.encrypt(mpz(r), config["paillier_pub"])
-    c = r % pow(2, l)
+	x = encrypted_b + paillier.encrypt(mpz(pow(2, l)), config["paillier_pub"]) - encrypted_a
+	r = random.getrandbits(l + 2)
+	z = x + paillier.encrypt(mpz(r), config["paillier_pub"])
+	c = r % pow(2, l)
 
-    encrypted_z = {
-        "c" : int(z.c),
-        "n" : int(z.n),
-    }
+	encrypted_z = {
+		"c" : int(z.c),
+		"n" : int(z.n),
+	}
 
-    dgk_init_without_route(False)
-    set_compare_operand_without_route(c)
+	dgk_init_without_route(False)
+	set_compare_operand_without_route(c)
 
-    response = requests.post("http://127.0.0.1:8000/veu11_compare_has_priv", json={
-        "z" : encrypted_z,   
-    })
-    
-    z_l = response.json()["z_l"]
-    t = dgk_compare_has_priv_without_route()
+	response = requests.post("http://127.0.0.1:8000/veu11_compare_has_priv", json={
+		"z" : encrypted_z,   
+	})
+	
+	z_l = response.json()["z_l"]
+	
+	t = dgk_compare_has_priv_without_route()
 
-    if MSB(r, l):
-        r_l = gm.encrypt(1, config["gm_pub"])
-    else:
-        r_l = gm.encrypt(0, config["gm_pub"])
+	if MSB(r, l):
+		r_l = gm.encrypt(1, config["gm_pub"])
+	else:
+		r_l = gm.encrypt(0, config["gm_pub"])
 
-    N, _ = config["gm_pub"]
-    t_ = (z_l[0]%N * r_l[0]%N)%N
-    t = (t_%N * t%N)%N
+	N, _ = config["gm_pub"]
+	t_ = (z_l[0]%N * r_l[0]%N)%N
+	t = (t_%N * t%N)%N
 
-    response = requests.post("http://127.0.0.1:8000/print_t", json={"t":t})
-    return jsonify(t=t, t_dec=response.json()["t_dec"])
+	response = requests.post("http://127.0.0.1:8000/print_t", json={"t":t})
+	return jsonify(t=t, t_dec=response.json()["t_dec"])
 
 @app.route("/print_t", methods=['GET', 'POST'])
 def print_t():
-    t = request.json["t"]
-    return jsonify(t_dec=gm.decrypt([t], config["gm_priv"]))
+	t = request.json["t"]
+	return jsonify(t_dec=gm.decrypt([t], config["gm_priv"]))
 
 @app.route("/veu11_compare_has_priv", methods=['GET', 'POST'])
 def veu11_compare_has_priv():
-    global config, data
+	global config, data
 
-    if not config['paillier_priv']:
-        print("Key inconsistency for Veu11.")
-        return Response("", status=404)
+	if not config['paillier_priv']:
+		print("Key inconsistency for Veu11.")
+		return Response("", status=404)
 
-    if not config['gm_priv']:
-        print("Key inconsistency for Goldwasser Micali.")
-        return Response("", status=404)
+	if not config['gm_priv']:
+		print("Key inconsistency for Goldwasser Micali.")
+		return Response("", status=404)
 
-    z = paillier.PaillierCiphertext(c=mpz(request.json["z"]["c"]), n=mpz(request.json["z"]["n"]))
+	z = paillier.PaillierCiphertext(c=mpz(request.json["z"]["c"]), n=mpz(request.json["z"]["n"]))
 
-    z_dec = paillier.decrypt(z, config["paillier_priv"])
-    d = z_dec % pow(2, config["dgk_l"])
+	z_dec = paillier.decrypt(z, config["paillier_priv"])
+	d = z_dec % pow(2, config["dgk_l"])
 
-    set_compare_operand_without_route(d) 
+	set_compare_operand_without_route(d) 
 
-    if MSB(z_dec, config["dgk_l"]):
-        z_l = gm.encrypt(1, config["gm_pub"])
-    else:
-        z_l = gm.encrypt(0, config["gm_pub"])
+	if MSB(z_dec, config["dgk_l"]):
+		z_l = gm.encrypt(1, config["gm_pub"])
+	else:
+		z_l = gm.encrypt(0, config["gm_pub"])
 
-    return jsonify(z_l=z_l)
+	return jsonify(z_l=z_l)
 
 @app.route("/set_veu11_operands", methods=['GET', 'POST'])
 def set_veu11_operands():
 
-    if config["paillier_priv"] or config["gm_priv"]:
-        print("Key inconsistency")
-        return Response("", status=404) 
+	if config["paillier_priv"] or config["gm_priv"]:
+		print("Key inconsistency")
+		return Response("", status=404) 
 
-    global data
+	global data
 
-    data['veu11_operand1'] = paillier.encrypt(mpz(request.json['val1']), config["paillier_pub"])
-    data['veu11_operand2'] = paillier.encrypt(mpz(request.json['val2']), config["paillier_pub"])
-    return Response(status=200)
+	data['veu11_operand1'] = paillier.encrypt(mpz(request.json['val1']), config["paillier_pub"])
+	data['veu11_operand2'] = paillier.encrypt(mpz(request.json['val2']), config["paillier_pub"])
+	return Response(status=200)
 
 
 def serialize(x):
@@ -550,6 +602,7 @@ def argmax_vector_nokey():
 
 	requests.post("http://127.0.0.1:8000/argmax_init",json={"l":l})
 
+
 	pubk = config["paillier_pub"]
 
 	for i in tqdm(range(1,len(shuf_inp))):
@@ -631,8 +684,8 @@ def serializeArr( gg , l ):
 @app.route("/bayes_handler", methods=['GET', 'POST'])
 def bayes_handler():
 
-	DATA = np.load("./DATA.npy")
-	LABEL = np.load("./LABEL.npy")
+	DATA = np.load("./DATA.npy", allow_pickle=True)
+	LABEL = np.load("./LABEL.npy", allow_pickle=True)
 
 	clp,l = deserialize_arr(request.json['clp'])
 	
@@ -668,5 +721,5 @@ def bayes_handler():
 	return jsonify(correct=str(correct),tot=str(total)) 		
 
 if __name__=='__main__':
-    app.run(debug=True,port=int(sys.argv[1]))
-    
+	app.run(debug=True,port=int(sys.argv[1]))
+	

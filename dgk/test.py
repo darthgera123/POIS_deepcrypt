@@ -4,7 +4,7 @@ from decrypt import  *
 import numpy as np
 
 # change this if want to generate keys
-generate_keys = False
+generate_keys = True
 
 if(generate_keys):
 	#keygen without dlut and with save in file (default)

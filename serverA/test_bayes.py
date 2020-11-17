@@ -3,7 +3,7 @@ import requests
 from tqdm import tqdm
 from paillierlib import paillier
 import numpy as np
-from gmpy2 import mpz
+# import gmpy2
 import json
 import math
 
@@ -27,9 +27,9 @@ def bayes():
 	requests.post("http://127.0.0.1:8000/veu11_init")
 
 	l = 85
-	conditional_prob_list = np.load("./COP_ENC.npy")
+	conditional_prob_list = np.load("./COP_ENC.npy", allow_pickle=True)
 	
-	class_prior_list = np.load("./CLP_ENC.npy")
+	class_prior_list = np.load("./CLP_ENC.npy", allow_pickle=True)
 	sx,sy,sz=conditional_prob_list.shape
 	dict_send = { "clp":serializeArr(class_prior_list.flatten() , l),"cop":serializeArr(conditional_prob_list.flatten() , l),"sx":str(sx),"sy":str(sy),"sz":str(sz)}
 	
