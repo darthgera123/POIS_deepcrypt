@@ -43,7 +43,7 @@ def compute_dot(inp_vec,weights,public_key):
 def encrypt_weights(weights,public_key):
 	encrypted_weights = []
 	for w in weights:
-		encrypted_class = [paillier_enc(xi,key_pair.public_key) for xi in w.tolist()]
+		encrypted_class = [paillier_enc(xi,public_key) for xi in w.tolist()]
 		encrypted_weights.append(encrypted_class)
 	return encrypted_weights
 
