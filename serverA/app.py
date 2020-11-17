@@ -322,8 +322,8 @@ def dgk_compare_has_priv_without_route():
 @app.route('/veu11_init', methods=['GET', 'POST'])
 def veu11_init():
     global config
-    key_pair = paillier.keygen(1024)
-    gm_key_pair = gm.generate_key(1024)
+    key_pair = np.load("./PAILLIER_KEY.npy")[0]
+    gm_key_pair = np.load("./GM_KEY.npy")[0]
 
     config["paillier_priv"] = key_pair.private_key
     config["paillier_pub"] = key_pair.public_key
@@ -601,8 +601,72 @@ def share_public_key():
 	spk = {"n":str(config['paillier_pub'].n), "g":str(config['paillier_pub'].g)}	
 	return jsonify(pbk=spk)    	
 
+def deserialize_arr(obj):
 
-# argv1 is the port number 
+	x = obj["a1"]
+	x = x.split(";")
+	y = obj["a2"]
+	y = y.split(";")
+	l = obj["a3"]
+
+	inp=[]
+
+	config['dgk_l'] = l
+
+
+	for i in range(len(x)):
+		inp.append(paillier.PaillierCiphertext(mpz(x[i]),mpz(y[i])))
+
+	return np.array(inp),l	
+
+def serializeArr( gg , l ): 
+	s1=str(gg[0].c)
+	s2=str(gg[0].n)
+	for i in range(1,len(gg)):
+		s1=s1+";"+str(gg[i].c)
+		s2=s2+";"+str(gg[i].n)
+	dic={"a1":s1,"a2":s2,"a3":l}
+	return dic
+
+@app.route("/bayes_handler", methods=['GET', 'POST'])
+def bayes_handler():
+
+	DATA = np.load("./DATA.npy")
+	LABEL = np.load("./LABEL.npy")
+
+	clp,l = deserialize_arr(request.json['clp'])
+	
+	ret,l = deserialize_arr(request.json['cop'])
+
+	sx,sy,sz=int(request.json['sx']),int(request.json['sy']),int(request.json['sz'])
+	cop = ret.reshape(sx,sy,sz)
+
+	correct , total = 0 , LABEL.shape[0]
+
+	for i in range(total):
+		
+		inp_vec = DATA[ i ]
+
+		class_posterior_list = []
+
+		for class_index in range( cop.shape[0] ):
+
+			class_prob = clp[ class_index ]
+			probabilities = cop[ class_index ][ np.arange(cop.shape[1]) , inp_vec ]  
+			class_prob = class_prob + np.sum(probabilities)
+			class_posterior_list.append(class_prob)	
+
+		class_posterior_list = np.array( class_posterior_list )
+		
+		getans = requests.post("http://127.0.0.1:5000/argmax_vector_nokey", json={"inp":serializeArr( class_posterior_list , l )})
+		idx = int(getans.json()['ans']["answer"])
+
+		if idx == LABEL[i]:
+			correct+=1
+
+	
+	return jsonify(correct=str(correct),tot=str(total)) 		
+
 if __name__=='__main__':
     app.run(debug=True,port=int(sys.argv[1]))
     
