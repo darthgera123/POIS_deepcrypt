@@ -16,9 +16,10 @@ from sympy.core.numbers import mod_inverse
 from tqdm import tqdm
 from werkzeug.utils import secure_filename
 
-from dgk_blueprint import dgk_blueprint
-from veu11_blueprint import veu11_blueprint, veu11_compare_no_priv
-from argmax_blueprint import argmax_blueprint
+
+from blueprints.dgk.dgk_blueprint import dgk_blueprint
+from blueprints.argmax.argmax_blueprint import argmax_blueprint
+from blueprints.veu11.veu11_blueprint import veu11_blueprint, veu11_compare_no_priv
 
 app = Flask(__name__)
 app.register_blueprint(dgk_blueprint, url_prefix="/dgk")

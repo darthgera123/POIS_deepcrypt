@@ -2,7 +2,7 @@ from flask import Blueprint, Response, Flask, jsonify, render_template, request,
 from POIS_deepcrypt.dgk import *
 from POIS_deepcrypt.serverA.utils import *
 import requests
-from veu11_blueprint import veu11_compare_no_priv
+from POIS_deepcrypt.serverA.blueprints.veu11.veu11_blueprint import veu11_compare_no_priv
 from tqdm import tqdm
 
 argmax_blueprint = Blueprint('argmax', __name__)
