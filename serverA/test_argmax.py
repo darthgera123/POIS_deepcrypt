@@ -36,7 +36,7 @@ def serializeArr( gg , l ):
 def argmax_handler(my_inp):
 	global T
 
-	requests.post("http://127.0.0.1:8000/veu11_init")
+	requests.post("http://127.0.0.1:8000/veu11/init")
 	pbk = requests.post("http://127.0.0.1:5000/share_public_key")
 
 	kg = pbk.json()['pbk']
@@ -45,7 +45,7 @@ def argmax_handler(my_inp):
 	print("Keygen done: ", time.time() - T)
 	T = time.time()
 
-	getans = requests.post("http://127.0.0.1:5000/argmax_vector_nokey", json={"inp":serializeANDenc_arr( my_inp,pubk )})
+	getans = requests.post("http://127.0.0.1:5000/argmax/vector_nokey", json={"inp":serializeANDenc_arr( my_inp,pubk )})
 
 	print("ans got: ", time.time() - T)
 	T = time.time()	
@@ -53,13 +53,13 @@ def argmax_handler(my_inp):
 	print(int(getans.json()['ans']["answer"]) , actual_best)
 
 def argmax_handler_enc( gg , l ):
-	requests.post("http://127.0.0.1:8000/veu11_init")
+	requests.post("http://127.0.0.1:8000/veu11/init")
 	# pbk = requests.post("http://127.0.0.1:5000/share_public_key")
 
 	# kg = pbk.json()['pbk']
 	# pubk = paillier.PaillierPublicKey(n=mpz(kg["n"]), g=mpz(kg["g"]))
 
-	getans = requests.post("http://127.0.0.1:5000/argmax_vector_nokey", json={"inp":serializeArr( gg , l )})
+	getans = requests.post("http://127.0.0.1:5000/argmax/vector_nokey", json={"inp":serializeArr( gg , l )})
 
 
 	return int(getans.json()['ans']["answer"])

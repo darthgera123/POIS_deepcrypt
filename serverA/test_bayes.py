@@ -24,7 +24,7 @@ def serializeArr( gg , l ):
 
 def bayes_enc():
 
-	requests.post("http://127.0.0.1:8000/veu11_init")
+	requests.post("http://127.0.0.1:8000/veu11/init")
 
 	l = 85
 	conditional_prob_list = np.load("./COP_ENC.npy", allow_pickle=True)
