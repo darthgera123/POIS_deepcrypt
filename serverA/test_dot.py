@@ -20,18 +20,3 @@ for i in tqdm(range(10)):
 	print(response.json())
 	print(orig)
 	assert orig == response.json()['unenc']
-	# print(unenc_dotp[", orig)
-	# assert dot_p == orig
-	# for j in range(15):
-	# 	response = requests.post("http://127.0.0.1:5000/veu11_compare_no_priv")
-	# 	out = response.json()["t_dec"]
-	# 	if a <= b and out == 0:
-	# 		print("Test Failed")
-	# 	elif a > b and out == 1:
-	# 		print("Test Failed")
-
-
-
-# client ke paas vector hai  , lekin key nhi hai
-# client call krega set_veu11_operands , 
-# client cal krega no
