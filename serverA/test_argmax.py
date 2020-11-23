@@ -58,8 +58,8 @@ def argmax_handler(my_inp):
     print("ans got: ", time.time() - T)
     T = time.time()
 
-    print(int(getans.json()['ans']["answer"]), actual_best)
-
+    print("Encrypted:", actual_best)
+    print("Unencrypted:", int(getans.json()['ans']["answer"]))
 
 def argmax_handler_enc(gg, l):
     requests.post("http://127.0.0.1:8000/veu11/init")

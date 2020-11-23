@@ -2,7 +2,7 @@ from flask import Blueprint, Response, Flask, jsonify, render_template, request,
 from POIS_deepcrypt.dgk import *
 from POIS_deepcrypt.serverA.utils import *
 import requests
-from POIS_deepcrypt.serverA.blueprints.veu11.veu11_blueprint import veu11_compare_no_priv
+from POIS_deepcrypt.serverA.blueprints.veu11.veu11_blueprint import veu11_compare_no_priv, veu11_compare_no_priv_without_route
 from tqdm import tqdm
 
 argmax_blueprint = Blueprint('argmax', __name__)
@@ -95,11 +95,13 @@ def argmax_vector_nokey():
         current_app.config["data"]['veu11_operand1'] = mxval
         current_app.config["data"]['veu11_operand2'] = ai
 
-        resp = (veu11_compare_no_priv())
+        # resp = (veu11_compare_no_priv())
 
-        enc_bit, dec = resp.json['t'], resp.json['t_dec']
+        # enc_bit, dec = resp.json['t'], resp.json['t_dec']
 
-        print(dec, "DEBUG")
+        # print(dec, "DEBUG")
+
+        enc_bit = veu11_compare_no_priv_without_route()
 
         r = random.getrandbits(l + 1)
         s = random.getrandbits(l + 1)

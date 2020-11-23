@@ -215,7 +215,7 @@ def hyperplane_handler():
         "vector": input_vec
     })
     vals, l = deserialize_arr(response.json())
-    requests.post("http://127.0.0.1:8000/veu11/init")
+    
     getans = requests.post(
         "http://127.0.0.1:5000/argmax/vector_nokey",
         json={
@@ -223,8 +223,7 @@ def hyperplane_handler():
         }
     )
 
-    return getans.json()
-
+    return jsonify(getans.json())
 
 if __name__ == '__main__':
     app.run(debug=True, port=int(sys.argv[1]))

@@ -16,14 +16,14 @@ def encrypt_weights(weights, public_key):
         encrypted_weights.append(encrypted_class)
     return encrypted_weights
 
-
+requests.post("http://127.0.0.1:8000/veu11/init")
 inp_vec = np.random.randint(low=0, high=10000, size=10).tolist()
 weights = np.random.randint(low=0, high=10000, size=(5, 10))
 
 key_pair = np.load("./PAILLIER_KEY.npy", allow_pickle=True)[0]
 encrypted_weights = encrypt_weights(weights, key_pair.public_key)
 np.save("./encrypted_weights.npy", np.asarray(encrypted_weights))
-response = requests.post("http://127.0.0.1:5000/hyperplane_handler", json={
+response = requests.post("http://127.0.0.1:5001/hyperplane_handler", json={
     "vector": inp_vec
 })
 inp1_vec = np.asarray(inp_vec).reshape(1, 10)

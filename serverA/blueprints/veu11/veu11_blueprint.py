@@ -102,6 +102,61 @@ def veu11_compare_no_priv():
     response = requests.post("http://127.0.0.1:8000/print_t", json={"t": t})
     return jsonify(t=t, t_dec=response.json()["t_dec"])
 
+def veu11_compare_no_priv_without_route():
+
+    global config, data
+
+    if not current_app.config['paillier_pub'] or current_app.config['paillier_priv']:
+        print("Key inconsistency for Veu11.")
+        return Response("", status=404)
+
+    if not current_app.config['gm_pub'] or current_app.config['gm_priv']:
+        print("Key inconsistency for Goldwasser Micali.")
+        return Response("", status=404)
+
+    if not current_app.config["data"]['veu11_operand1'] or not current_app.config["data"]["veu11_operand2"]:
+        print("Comparison operands not set for Veu11.")
+        return Response("", status=404)
+
+    encrypted_a = current_app.config["data"]["veu11_operand1"]
+    encrypted_b = current_app.config["data"]["veu11_operand2"]
+    l = current_app.config['dgk_l']
+
+    x = encrypted_b + \
+        paillier.encrypt(mpz(pow(2, l)), current_app.config["paillier_pub"]) - encrypted_a
+    r = random.getrandbits(l + 2)
+    z = x + paillier.encrypt(mpz(r), current_app.config["paillier_pub"])
+    c = r % pow(2, l)
+
+    encrypted_z = {
+        "c": int(z.c),
+        "n": int(z.n),
+    }
+
+    dgk_init_without_route(False)
+    set_compare_operand_without_route(c)
+
+    response = requests.post(
+        "http://127.0.0.1:8000/veu11/compare_has_priv",
+        json={
+            "z": encrypted_z,
+        })
+
+    z_l = response.json()["z_l"]
+
+    t = dgk_compare_has_priv_without_route()
+
+    if MSB(r, l):
+        r_l = gm.encrypt(1, current_app.config["gm_pub"])
+    else:
+        r_l = gm.encrypt(0, current_app.config["gm_pub"])
+
+    N, _ = current_app.config["gm_pub"]
+    t_ = (z_l[0] % N * r_l[0] % N) % N
+    t = (t_ % N * t % N) % N
+
+    response = requests.post("http://127.0.0.1:8000/print_t", json={"t": t})
+    return t
 
 @veu11_blueprint.route("/compare_has_priv", methods=['GET', 'POST'])
 def veu11_compare_has_priv():
