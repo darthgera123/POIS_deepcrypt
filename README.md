@@ -39,3 +39,10 @@ Hyperplane classifier consists of the weights encrypted at the model server and 
 Send a POST request to `http://127.0.0.1:5000/hyperplane_handler` with the input vector.  
 + Internally it will call the dot product protocol k times to get an vector of k encrypted values. They can be done by sending a POST request to `http://127.0.0.1:8000/hyperplane_dot`.  
 + Once we get the result, we then call the argmax protocol to get the final class. We send a post request with the vector of k encrypted values and get `http://127.0.0.1:5000/argmax/vector_nokey`
+
+### Naiive Bayes Classifier
+- run "app.py 5000" and "app.py 8000" to represent to servers runnning on different ports , 8000 representing the server and 5000 the client
+- The server side will require to send its encrypted model information and probability tables to the bayes_handler route of app.py .
+- The server will send this encrypted info to the port 5000 which represents our client side. `http://127.0.0.1:5001/bayes_handler`
+- This will internally do the bayes computation as shown in the slides and send argmax request to the handler `http://127.0.0.1:5000/argmax_vector_nokey` , 5000 and 5001 both represent client side.
+- "test_bayes.py" file captures the way to implement these 4 steps . this file is basically a implementation which a handler on server's side should undertake to complete the protocol . 
