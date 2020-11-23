@@ -26,6 +26,10 @@
 - run 'pip3 install -e .' in parent directory of POIS_deepcrypt	
 - Use ' from POIS_deepcrypt.dir1.dir2 import file ' to import a file anywhere , then use file.function() 
 
+## Hosting Servers
+- In the serverA folder, run python3 app.py 5000, python3 app.py 5001, python3 app.py 8000
+- Ports 5000 and 5001 are used by the client and port 8000 is used by server.
+
 ## HOW TO USE
 ### DGK Cryptosystem
 - This cryptosystem is one of the foundational cryptosystems used in this product by a lot of the modules.
@@ -44,7 +48,7 @@
 
 ### Veu11 Comparison Protocol
 - The client (port 5000) has two encrypted numbers and the server (port 8000) has the private keys for paillier and goldwasser micali. Client gets the encrypted bit according to the result of the comparison.
-- Run python3 test_veull.py to check output of protocol. In this file, random numbers are generated and comparison bit is received from the server. Currently we are also returning the decrypted bit for testing purpose.
+- After the servers are hosted, run python3 test_veull.py to check output of protocol. In this file, random numbers are generated and comparison bit is received from the server. Currently we are also returning the decrypted bit for testing purpose.
 - This protocol uses dgk comparison protocol to compute encrypted comparison bit for the comparison of two unencrypted numbers generated in the protocol. Each party has one unencrypted number.
 - Refer to the contents of this file to check which requests are used to get the output.
 - Refer to the presentation slides for details of the protocol.
@@ -64,7 +68,7 @@ Send a POST request to `http://127.0.0.1:5000/hyperplane_handler` with the input
 + Once we get the result, we then call the argmax protocol to get the final class. We send a post request with the vector of k encrypted values and get `http://127.0.0.1:5000/argmax/vector_nokey`
 
 ### Naiive Bayes Classifier
-- run "app.py <port number>" thrice to represent to servers runnning on different ports , 8000 representing the server and 5000,5001 the client
+- Run this after hosting the servers.
 - The server side will require to send its encrypted model information and probability tables to the bayes_handler route of app.py .
 - The server will send this encrypted info to the port 5000 which represents our client side. `http://127.0.0.1:5001/bayes_handler`
 - This will internally do the bayes computation as shown in the slides and send argmax request to the handler `http://127.0.0.1:5000/argmax_vector_nokey` , 5000 and 5001 both represent client side.
