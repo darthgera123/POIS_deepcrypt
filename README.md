@@ -18,23 +18,12 @@
 - We have created a faster version of paillierlib, we have named it as paillierlib2, the corresponding folder is provided in our code.
 - In order to import paillierlib2, just place this folder in the directory "/lib/python3.6/site-packages" present in your environment.
 
-## Knows Issues
-- Convert the adhoc style to client-server
-- Final step of `comparison/dgk_comp.py`
-- DGK decryption the power according to the original algo should be vp*vq, but we have used just vp.
-- Equality case in comparison.
-- Currently the code for veu11 is not client-server based so when comparing 2 unencrypted numbers using dgk_compare, key for goldwasser micali is generated in veu11.py and the public key is passed as an argument to dgk compare function. Need to fix this when moving to client - server based code.
-- For testing purpose of veu11, currently the code returns the decrypted output. It should return only the encrypted bit. Fix this after testing
-
 ## IMPORTING FILES
 - write these 2 lines in a script setup.py and save it in parent directory of POIS_deepcrypt
 - line 1: from setuptools import setup, find_packages
 - line 2: setup(name='myproject', version='1.0', packages=find_packages())
 - run 'pip3 install -e .' in parent directory of POIS_deepcrypt	
-- Use ' from POIS_deepcrypt.dir1.dir2 import file ' to import a file anywhere , then use file.function()  
-
-## FASTER PAILLIER
--  replace python package ".local/lib/python3.5/site-packages/paillierlib/paillier.py" file's code with fastmod.py
+- Use ' from POIS_deepcrypt.dir1.dir2 import file ' to import a file anywhere , then use file.function() 
 
 ## HOW TO USE
 ### DGK Cryptosystem
@@ -51,6 +40,13 @@
 - Now we can call the route `http://127.0.0.1:8000/dgk_compare_has_priv` on the server with the DGK private key to initiate the comparison protocol which itself will initiate the steps on the other server in between the protocol by sending a request as follows: `requests.post("http://127.0.0.1:8000/dgk/compare_no_priv",json={'y_enc': y_enc})`.
 - At the end of this protocol, both servers will hold a bit the XOR of which will give the final result. These bits are communicated based on the needs of the protocol built on top of this protocol.
 - Please refer the slides for additional theory for the implementation.
+
+### Veu11 Comparison Protocol
+- The client (port 5000) has two encrypted numbers and the server (port 8000) has the private keys for paillier and goldwasser micali. Client gets the encrypted bit according to the result of the comparison.
+- Run python3 test_veull.py to check output of protocol. In this file, random numbers are generated and comparison bit is received from the server. Currently we are also returning the decrypted bit for testing purpose.
+- This protocol uses dgk comparison protocol to compute encrypted comparison bit for the comparison of two unencrypted numbers generated in the protocol. Each party has one unencrypted number.
+- Refer to the contents of this file to check which requests are used to get the output.
+- Refer to the presentation slides for details of the protocol.
 
 ### Argmax Building block
 - run "app.py <port number>" twice to represent a server runnning on a port and a client on the other.
