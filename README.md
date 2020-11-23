@@ -4,6 +4,7 @@
 - sympy
 - numpy
 - gensafeprime
+- Flask
 
 ### Paillier Cryptosystem:
 - Python library - paillierlib
@@ -14,6 +15,8 @@
 -   decryption - paillier.decrypt(message, keypair.private_key)
 -   Homomorphic operations - Use normal operations in the encrypted domain as well, it internally takes care of it.
 -   Doc - https://pypi.org/project/paillierlib/
+- We have created a faster version of paillierlib, we have named it as paillierlib2, the corresponding folder is provided in our code.
+- In order to import paillierlib2, just place this folder in the directory "/lib/python3.6/site-packages" present in your environment.
 
 ## Knows Issues
 - Convert the adhoc style to client-server
