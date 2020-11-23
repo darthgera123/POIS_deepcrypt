@@ -31,4 +31,11 @@
 - Use ' from POIS_deepcrypt.dir1.dir2 import file ' to import a file anywhere , then use file.function()  
 
 ## FASTER PAILLIER
--  replace python package ".local/lib/python3.5/site-packages/paillierlib/paillier.py" file's code with fastmod.py 
+-  replace python package ".local/lib/python3.5/site-packages/paillierlib/paillier.py" file's code with fastmod.py
+
+## HOW TO USE
+### Hyperplane Classifier
+Hyperplane classifier consists of the weights encrypted at the model server and the input with the keys at the client server. At the end we get the class to which the vector belongs.    
+Send a POST request to `http://127.0.0.1:5000/hyperplane_handler` with the input vector.  
++ Internally it will call the dot product protocol k times to get an vector of k encrypted values. They can be done by sending a POST request to `http://127.0.0.1:8000/hyperplane_dot`.  
++ Once we get the result, we then call the argmax protocol to get the final class. We send a post request with the vector of k encrypted values and get `http://127.0.0.1:5000/argmax/vector_nokey`
