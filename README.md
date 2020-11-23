@@ -8,15 +8,15 @@
 
 ### Paillier Cryptosystem:
 - Python library - paillierlib
--  Installation - pip install paillierlib
 - Usage:
 -    Generating key pair - paillier.keygen()
 -   encryption - paillier.encrypt(message, keypair.public_key)
 -   decryption - paillier.decrypt(message, keypair.private_key)
 -   Homomorphic operations - Use normal operations in the encrypted domain as well, it internally takes care of it.
 -   Doc - https://pypi.org/project/paillierlib/
-- We have created a faster version of paillierlib, we have named it as paillierlib2, the corresponding folder is provided in our code.
-- In order to import paillierlib2, just place this folder in the directory "/lib/python3.6/site-packages" present in your environment.
+- We have created a faster version of paillierlib, we have named it as paillierlib, the corresponding folder is provided in our code.
+- The slower version of paillierlib named as paillierlib2is present in the paillierlib2 folder.
+- In order to import paillierlib and paillierlib2, just place the corresponding folders in the directory "/lib/python3.6/site-packages" present in your environment.
 
 ## IMPORTING FILES
 - write these 2 lines in a script setup.py and save it in parent directory of POIS_deepcrypt
