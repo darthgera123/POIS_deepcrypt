@@ -6,7 +6,7 @@ from gmpy2 import mpfr
 import random
 import copy
 from tqdm import tqdm
-from POIS_deepcrypt.Naiive_Bayes import ArgMax as ARG
+from POIS_deepcrypt.Naiive_Bayes import argmax as ARG
 #################################################################################################################
 #server side functions , all inputs are np arrays
 
@@ -237,16 +237,19 @@ def genInput(mapping):
 
 
 def Bayes():
-	feature_values,mapping = getFeatureValues()
+	# feature_values,mapping = getFeatureValues()
 
-	inp_vec = genInput(mapping)
+	# inp_vec = genInput(mapping)
 
-	#print(inp_vec,mapping)
-	class_prior_list , conditional_prob_list , clp_plain , cop_plain = getProbabilityTables()
+	# #print(inp_vec,mapping)
+	# class_prior_list , conditional_prob_list , clp_plain , cop_plain = getProbabilityTables()
+		
+	# DATA = np.load("./DATA.npz")	
 
+	# for 
 	class_posterior_list = computeClassProbs( inp_vec , class_prior_list , conditional_prob_list , mapping ,False)
 	
-	class_posterior_list_unenc = computeClassProbs( inp_vec , clp_plain , cop_plain , mapping ,True)
+	# class_posterior_list_unenc = computeClassProbs( inp_vec , clp_plain , cop_plain , mapping ,True)
 
 	global key_pair
 	# for i in range(len(class_posterior_list_unenc)):
@@ -262,6 +265,24 @@ def Bayes():
 	idx = ARG.handler_A(np.array(class_posterior_list),75,key_pair.public_key,key_pair.private_key)
 	print("ON ENCRYPTED DATA BEST CLASS IS:" , idx + 1 )
 
-Bayes()
+def GetData():
 
+	feature_values,mapping = getFeatureValues()
+	
+	class_prior_list , conditional_prob_list , clp_plain , cop_plain = getProbabilityTables()
+
+	for i in range(1000):
+		inp_vec = genInput(mapping)
+		class_posterior_list = computeClassProbs( inp_vec , class_prior_list , conditional_prob_list , mapping ,False)
+		DATA.append(inp_vec)
+		LABELS.append(np.argmax(np.array(class_posterior_list)))
+
+	np.save("./ClassPriors",class_prior_list)	
+	np.save("./CondProbs",conditional_prob_list)
+	np.save("./DATA",DATA)	
+	np.save("./LABELS",LABELS)	
+
+
+if __name__=='__main__':
+	GetData()
 
