@@ -17,7 +17,7 @@
 -   Doc - https://pypi.org/project/paillierlib/
 - We have created a faster version of paillierlib, we have named it as paillierlib, the corresponding folder is provided in our code.
 - The slower version of paillierlib named as paillierlib2is present in the paillierlib2 folder.
-- In order to import paillierlib and paillierlib2, just place the corresponding folders in the directory "/lib/python3.6/site-packages" present in your environment.
+- In order to import paillierlib and paillierlib2, just place the corresponding folders in the directory "/lib/python3.6/site-packages" present in your environment. (This location might be different based on where installation of libraries occurs on your system , you can find this path using `pip show numpy` (to get the installation location))
 
 ## IMPORTING FILES
 - write these 2 lines in a script setup.py and save it in parent directory of POIS_deepcrypt
@@ -52,6 +52,14 @@
 - This protocol uses dgk comparison protocol to compute encrypted comparison bit for the comparison of two unencrypted numbers generated in the protocol. Each party has one unencrypted number.
 - Refer to the contents of this file to check which requests are used to get the output.
 - Refer to the presentation slides for details of the protocol.
+
+### Dot Product Protocol
+- The client (port 5000) has vector X and the server (port 8000) has the private keys for paillier and vector Y.
+- The set_dot_product initialises and sends the encrypted vector Y to the client.
+- The client then computes this encrypted dot product and sends to server.
+- The server since it has the private key decrypts it.   
+- Please refer the slides for additional theory and a diagram of the exchheanges and other details.
+
 
 ### Argmax Building block
 - run "app.py <port number>" twice to represent a server runnning on a port and a client on the other.

@@ -10,6 +10,7 @@ from flask import (Flask, Response, flash, jsonify, redirect, render_template,
                    request, url_for)
 from gmpy2 import mpz
 from paillierlib import paillier
+from paillierlib2 import paillier2
 from POIS_deepcrypt.dgk import *
 from POIS_deepcrypt.serverA.utils import *
 from sympy.core.numbers import mod_inverse
@@ -41,6 +42,8 @@ app.config["data"] = {
     'veu11_operand1': None,
     'veu11_operand2': None,
     'private_b_var': None,
+    'enc_b':None,
+    'unenc_a':None
 }
 
 ############  DGK #########################
@@ -152,51 +155,53 @@ def bayes_handler():
 
     return jsonify(correct=str(correct), tot=str(total))
 
-# @app.route('/dot_unenc', methods=['GET', 'POST'])
-# def dot_unenc():
-#     global config,data
+@app.route('/dot_unenc', methods=['GET', 'POST'])
+def dot_unenc():
+    global config
 
-#     c_value = request.json['val1']
-#     n_value = request.json['val2']
+    c_value = request.json['val1']
+    n_value = request.json['val2']
 
-#     dic={"paillier_c":c_value,"paillier_n":n_value}
-#     data = deserialize(dic)
+    dic={"paillier_c":c_value,"paillier_n":n_value}
+    mdata = deserialize(dic)
 
-#     unenc = (int)(paillier2.decrypt(data, app.config["paillier_priv"] ))
-#     return jsonify(unenc=unenc)
+    unenc = (int)(paillier2.decrypt(mdata, app.config["paillier_priv"]))
+    return jsonify(unenc=unenc)
 
-# @app.route("/set_dot_product", methods=['GET', 'POST'])
-# def set_dot_product():
-#     global config, data
-#     # print(data, config)
-#     pub = app.config['paillier_pub']
-#     vector_b_encrypt = []
-#     mdata = request.json['val2']
+@app.route("/set_dot_product", methods=['GET', 'POST'])
+def set_dot_product():
+    global config
+    # print(data, config)
+    # print(config)
+    pub = app.config['paillier_pub']
+    vector_b_encrypt = []
+    mdata = request.json['val2']
 
-#     for each in mdata:
-#         c1 = paillier2.encrypt(each, pub)
-#         vector_b_encrypt.append(c1)
+    for each in mdata:
+        c1 = paillier2.encrypt(each, pub)
+        vector_b_encrypt.append(c1)
 
+    app.config["data"]['enc_b'] = vector_b_encrypt
+    # print(data)
+    return Response(status=200)
 
-#     data['unenc_a'] = request.json['val1']
-#     data['enc_b'] = vector_b_encrypt
-#     print(data)
-#     return Response(status=200)
-
-# @app.route("/compute_dot", methods=['GET', 'POST'])
-# def compute_dot():
-#     global config,data
-
-#     vector_b_encrypt = data['enc_b']
-#     vector_a_unencrypt = data['unenc_a']
-#     fval = paillier2.encrypt(0, app.config["paillier_pub"])
-#     for ind,each in enumerate(vector_b_encrypt):
-#         c2 = mpz(vector_a_unencrypt[ind])
-#         c1 = each
-#         x = c1 * c2
-#         fval += x
-#     w = serialize(fval)
-#     return jsonify(fval=w)
+@app.route("/compute_dot", methods=['GET', 'POST'])
+def compute_dot():
+    global config
+    app.config["data"]['unenc_a'] = request.json['val1']
+    
+    vector_b_encrypt = app.config["data"]['enc_b']
+    vector_a_unencrypt = app.config["data"]['unenc_a']
+    fval = paillier2.encrypt(0, app.config["paillier_pub"])
+    
+    for ind,each in enumerate(vector_b_encrypt):
+        c2 = mpz(vector_a_unencrypt[ind])
+        c1 = each
+        x = c1 * c2
+        fval += x
+    
+    w = serialize(fval)
+    return jsonify(fval=w)
 
 @app.route("/hyperplane_dot", methods=['GET', 'POST'])
 def compute_hyperplane_dot():
